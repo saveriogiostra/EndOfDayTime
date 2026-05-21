@@ -1,0 +1,63 @@
+@using System.Diagnostics.CodeAnalysis
+@using Microsoft.AspNetCore.Components.Forms
+@inherits InputBase<EodtCore.EndOfDayTime>
+
+<input type="text"
+       class="@CssClass"
+       value="@CurrentValueAsString"
+       placeholder="HH:mm"
+       maxlength="5"
+       @oninput="HandleInput"
+       @onblur="HandleBlur" />
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <span class="eodt-validation-error">@_errorMessage</span>
+}
+
+@code {
+    private string _errorMessage = string.Empty;
+
+    private void HandleInput(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString() ?? string.Empty;
+        CurrentValueAsString = raw;
+        _errorMessage = string.Empty;
+    }
+
+    private void HandleBlur(FocusEventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(CurrentValueAsString))
+        {
+            _errorMessage = string.Empty;
+            return;
+        }
+
+        if (!EodtCore.EndOfDayTime.TryParse(CurrentValueAsString, out _))
+        {
+            _errorMessage = "Enter a valid time (00:00–24:00).";
+        }
+        else
+        {
+            _errorMessage = string.Empty;
+        }
+    }
+
+    protected override bool TryParseValueFromString(
+        string? value,
+        out EodtCore.EndOfDayTime result,
+        [NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        if (EodtCore.EndOfDayTime.TryParse(value ?? string.Empty, out result))
+        {
+            validationErrorMessage = null;
+            return true;
+        }
+
+        validationErrorMessage = "Enter a valid time (00:00–24:00).";
+        return false;
+    }
+
+    protected override string? FormatValueAsString(EodtCore.EndOfDayTime value)
+        => value == default ? string.Empty : value.ToString();
+}

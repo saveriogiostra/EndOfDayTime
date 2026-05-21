@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <Platform>Any CPU</Platform>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(IsPackable)' != 'false'">
+    <Authors>Saverio Giostra</Authors>
+    <Company>Lavika</Company>
+    <Copyright>Copyright © Saverio Giostra 2026</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/saveriogiostra/EndOfDayTime</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/saveriogiostra/EndOfDayTime</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>time;dotnet;endofday;winforms;wpf;blazor;efcore</PackageTags>
+    <Version>1.0.0</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,12 @@
+@using Microsoft.AspNetCore.Components.Forms
+@using EndOfDayTime.Blazor
+@using EodtCore = EndOfDayTime.Core
+
+<EditForm Model="@Model">
+    <EndOfDayTimeInput @bind-Value="Model.End" />
+</EditForm>
+
+@code {
+    [Parameter]
+    public EndOfDayTime.Blazor.Tests.TestModel Model { get; set; } = new();
+}

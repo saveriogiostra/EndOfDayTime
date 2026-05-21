@@ -1,0 +1,2 @@
+$env:Platform = ""
+dotnet build
