@@ -193,7 +193,9 @@ namespace EndOfDayTime.WinForms.Tests
 
             control.Text = "bad";
             control.Validate(); // valid → invalid: fires
-            control.Text = "worse";
+            Assert.Equal(1, count);
+
+            control.Text = "nope"; // 4 chars — no auto-validate
             control.Validate(); // invalid → invalid: does not fire
             Assert.Equal(1, count);
         }
@@ -207,7 +209,9 @@ namespace EndOfDayTime.WinForms.Tests
             var errorProvider = new ErrorProvider();
             errorProvider.Attach(control);
 
-            control.Text = "bad";
+            // Set text directly via TimeValue to bypass key filtering
+            // then corrupt it to simulate an invalid state
+            control.Text = "99:99"; // numerically invalid time
             control.Validate();
 
             Assert.Equal("Enter a valid time (00:00–24:00).", errorProvider.GetError(control));
