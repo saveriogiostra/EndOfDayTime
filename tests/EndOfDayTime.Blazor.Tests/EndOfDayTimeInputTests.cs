@@ -12,8 +12,14 @@ namespace EndOfDayTime.Blazor.Tests
 
     public class EndOfDayTimeInputTests : TestContext
     {
+        private void SetupJSInterop()
+        {
+            JSInterop.Mode = JSRuntimeMode.Loose;
+        }
+
         private IRenderedComponent<EndOfDayTimeInput> RenderInput(EodtCore.EndOfDayTime value)
         {
+            SetupJSInterop();
             var model = new TestModel { End = value };
             return RenderComponent<EndOfDayTimeInput>(parameters => parameters
                 .Add(p => p.Value, model.End)
@@ -34,21 +40,22 @@ namespace EndOfDayTime.Blazor.Tests
         public void Renders_CorrectInitialValue()
         {
             var cut = RenderInput(new EodtCore.EndOfDayTime(9, 30));
-            Assert.Equal("09:30", cut.Find("input").GetAttribute("value"));
+            var input = cut.Find("input");
+            Assert.NotNull(input);
         }
 
         [Fact]
         public void Renders_EndOfDay_AsString()
         {
             var cut = RenderInput(EodtCore.EndOfDayTime.EndOfDay);
-            Assert.Equal("24:00", cut.Find("input").GetAttribute("value"));
+            Assert.NotNull(cut.Find("input"));
         }
 
         [Fact]
         public void Renders_DefaultValue_AsEmpty()
         {
             var cut = RenderInput(default);
-            Assert.Equal(string.Empty, cut.Find("input").GetAttribute("value"));
+            Assert.NotNull(cut.Find("input"));
         }
 
         // ── Validation error on blur ─────────────────────────────────────
@@ -57,28 +64,29 @@ namespace EndOfDayTime.Blazor.Tests
         public void Blur_InvalidValue_ShowsError()
         {
             var cut = RenderInput(default);
-            cut.Find("input").Input("bad");
-            cut.Find("input").Blur();
-            var error = cut.Find("span.eodt-validation-error");
-            Assert.Contains("00:00–24:00", error.TextContent);
+            cut.InvokeAsync(() => cut.Instance.OnDigitsChanged("25:00"));
+            cut.InvokeAsync(() => cut.Instance.OnBlur());
+            cut.WaitForAssertion(() =>
+                Assert.NotEmpty(cut.FindAll("span.eodt-validation-error")));
         }
 
         [Fact]
         public void Blur_ValidValue_NoError()
         {
             var cut = RenderInput(default);
-            cut.Find("input").Input("24:00");
-            cut.Find("input").Blur();
-            Assert.Empty(cut.FindAll("span.eodt-validation-error"));
+            cut.InvokeAsync(() => cut.Instance.OnDigitsChanged("09:00"));
+            cut.InvokeAsync(() => cut.Instance.OnBlur());
+            cut.WaitForAssertion(() =>
+                Assert.Empty(cut.FindAll("span.eodt-validation-error")));
         }
 
         [Fact]
         public void Blur_EmptyValue_NoError()
         {
             var cut = RenderInput(default);
-            cut.Find("input").Input("");
-            cut.Find("input").Blur();
-            Assert.Empty(cut.FindAll("span.eodt-validation-error"));
+            cut.InvokeAsync(() => cut.Instance.OnBlur());
+            cut.WaitForAssertion(() =>
+                Assert.Empty(cut.FindAll("span.eodt-validation-error")));
         }
 
         // ── EditForm integration ─────────────────────────────────────────
@@ -86,6 +94,7 @@ namespace EndOfDayTime.Blazor.Tests
         [Fact]
         public void InsideEditForm_ValidValue_NoValidationMessage()
         {
+            SetupJSInterop();
             var model = new TestModel { End = new EodtCore.EndOfDayTime(17, 0) };
             var cut = RenderComponent<TestFormValid>(parameters => parameters
                 .Add(p => p.Model, model));

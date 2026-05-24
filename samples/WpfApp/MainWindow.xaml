@@ -1,0 +1,54 @@
+﻿<Window x:Class="EndOfDayTime.Sample.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:eodt="clr-namespace:EndOfDayTime.Wpf;assembly=EndOfDayTime.Wpf"
+        Title="EndOfDayTime WPF Sample"
+        Width="400" Height="300"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+
+    <StackPanel Margin="20" VerticalAlignment="Center">
+
+        <TextBlock Text="EndOfDayTime WPF Sample"
+                   FontSize="16" FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
+        <!-- Shift Start -->
+        <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Shift start:"
+                       VerticalAlignment="Center"/>
+            <eodt:EndOfDayTimeTextBox Grid.Column="1"
+                       TimeValue="{Binding Start, Mode=TwoWay}"
+                       HorizontalAlignment="Left"/>
+        </Grid>
+
+        <!-- Shift End -->
+        <Grid Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Shift end:"
+                       VerticalAlignment="Center"/>
+            <eodt:EndOfDayTimeTextBox Grid.Column="1"
+                       TimeValue="{Binding End, Mode=TwoWay}"
+                       HorizontalAlignment="Left"/>
+        </Grid>
+
+        <!-- Save button -->
+        <Button Content="Save shift"
+                Width="100" HorizontalAlignment="Left"
+                Command="{Binding SaveCommand}"/>
+
+        <!-- Result -->
+        <TextBlock Text="{Binding ResultMessage}"
+                   Margin="0,15,0,0"
+                   TextWrapping="Wrap"
+                   Foreground="{Binding ResultColor}"/>
+
+    </StackPanel>
+</Window>

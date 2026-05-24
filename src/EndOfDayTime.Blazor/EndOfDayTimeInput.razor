@@ -1,45 +1,71 @@
 @using System.Diagnostics.CodeAnalysis
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.JSInterop
 @inherits InputBase<EodtCore.EndOfDayTime>
+@inject IJSRuntime JS
+@implements IAsyncDisposable
 
-<input type="text"
-       class="@CssClass"
-       value="@CurrentValueAsString"
-       placeholder="HH:mm"
-       maxlength="5"
-       @oninput="HandleInput"
-       @onblur="HandleBlur" />
+<input @ref="_inputRef" type="text" class="@CssClass"
+       style="width:70px; text-align:center; font-family:Consolas; letter-spacing:1px;" placeholder="HH:mm" />
 
 @if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <span class="eodt-validation-error">@_errorMessage</span>
+    <span class="eodt-validation-error" style="color:red; font-size:0.8em; display:block;">@_errorMessage</span>
 }
 
 @code {
+    private ElementReference _inputRef;
     private string _errorMessage = string.Empty;
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _instance;
+    private DotNetObjectReference<EndOfDayTimeInput>? _dotNetRef;
 
-    private void HandleInput(ChangeEventArgs e)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var raw = e.Value?.ToString() ?? string.Empty;
-        CurrentValueAsString = raw;
-        _errorMessage = string.Empty;
+        if (firstRender)
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/EndOfDayTime.Blazor/endofdaytime.js");
+            _dotNetRef = DotNetObjectReference.Create(this);
+            _instance = await _module.InvokeAsync<IJSObjectReference>(
+                "initEndOfDayTimeInput", _inputRef, _dotNetRef);
+
+            // Set initial value if any
+            if (Value != default)
+                await _instance.InvokeVoidAsync("setValue", Value.ToString());
+        }
     }
 
-    private void HandleBlur(FocusEventArgs e)
+    [JSInvokable]
+    public void OnDigitsChanged(string rendered)
+    {
+        CurrentValueAsString = rendered;
+        _errorMessage = string.Empty;
+        // NON chiamare StateHasChanged() — il JS gestisce già il DOM
+    }
+
+    [JSInvokable]
+    public void OnBlur()
     {
         if (string.IsNullOrWhiteSpace(CurrentValueAsString))
-        {
             _errorMessage = string.Empty;
-            return;
-        }
+        else if (!EodtCore.EndOfDayTime.TryParse(CurrentValueAsString, out _))
+            _errorMessage = "Enter a valid time (00:00–24:00).";
+        else
+            _errorMessage = string.Empty;
 
-        if (!EodtCore.EndOfDayTime.TryParse(CurrentValueAsString, out _))
+        // Chiama StateHasChanged solo per aggiornare il messaggio di errore
+        InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnCommit()
+    {
+        if (!string.IsNullOrWhiteSpace(CurrentValueAsString) &&
+            !EodtCore.EndOfDayTime.TryParse(CurrentValueAsString, out _))
         {
             _errorMessage = "Enter a valid time (00:00–24:00).";
-        }
-        else
-        {
-            _errorMessage = string.Empty;
+            InvokeAsync(StateHasChanged);
         }
     }
 
@@ -53,11 +79,19 @@
             validationErrorMessage = null;
             return true;
         }
-
         validationErrorMessage = "Enter a valid time (00:00–24:00).";
         return false;
     }
 
     protected override string? FormatValueAsString(EodtCore.EndOfDayTime value)
         => value == default ? string.Empty : value.ToString();
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_instance != null)
+            await _instance.DisposeAsync();
+        if (_module != null)
+            await _module.DisposeAsync();
+        _dotNetRef?.Dispose();
+    }
 }

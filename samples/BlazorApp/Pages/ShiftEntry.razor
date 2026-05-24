@@ -1,0 +1,52 @@
+@page "/shift"
+@using EodtCore = EndOfDayTime.Core
+@using EndOfDayTime.Blazor
+
+<h3>Shift Entry</h3>
+
+<EditForm Model="@_model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+
+    <div style="margin-bottom: 10px;">
+        <label>Shift start:</label><br/>
+        <EndOfDayTimeInput @bind-Value="_model.Start" />
+    </div>
+
+    <div style="margin-bottom: 10px;">
+        <label>Shift end:</label><br/>
+        <EndOfDayTimeInput @bind-Value="_model.End" />
+    </div>
+
+    <button type="submit">Save shift</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_result))
+{
+    <p style="margin-top: 15px; color: @_resultColor">@_result</p>
+}
+
+@code {
+    private ShiftModel _model = new();
+    private string _result = string.Empty;
+    private string _resultColor = "green";
+
+    private void HandleSubmit()
+    {
+        if (_model.End <= _model.Start)
+        {
+            _result = "End time must be after start time.";
+            _resultColor = "red";
+            return;
+        }
+
+        var duration = _model.End - _model.Start;
+        _result = $"Shift saved! Start: {_model.Start} End: {_model.End} Duration: {(int)duration.TotalHours}h {duration.Minutes:D2}m";
+        _resultColor = "green";
+    }
+
+    public class ShiftModel
+    {
+        public EodtCore.EndOfDayTime Start { get; set; }
+        public EodtCore.EndOfDayTime End { get; set; }
+    }
+}
