@@ -20,22 +20,16 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Build src
+      - name: Build
         run: |
           $env:Platform = ""
-          dotnet build src/ --configuration Release --no-incremental
-        shell: pwsh
-
-      - name: Build tests
-        run: |
-          $env:Platform = ""
-          dotnet build tests/ --configuration Release --no-incremental
+          dotnet build EndOfDayTime.sln --configuration Release --no-incremental
         shell: pwsh
 
       - name: Run tests
         run: |
           $env:Platform = ""
-          dotnet test tests/ --configuration Release --no-build --verbosity normal
+          dotnet test EndOfDayTime.sln --configuration Release --no-build --verbosity normal
         shell: pwsh
 
   publish:
@@ -52,10 +46,22 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: Build
+        run: |
+          $env:Platform = ""
+          dotnet build EndOfDayTime.sln --configuration Release --no-incremental
+        shell: pwsh
+
+      - name: Run tests
+        run: |
+          $env:Platform = ""
+          dotnet test EndOfDayTime.sln --configuration Release --no-build --verbosity normal
+        shell: pwsh
+
       - name: Pack
         run: |
           $env:Platform = ""
-          dotnet pack src/ --configuration Release --no-incremental --output ./nupkgs
+          dotnet pack EndOfDayTime.sln --configuration Release --no-build --output ./nupkgs
         shell: pwsh
 
       - name: Publish to NuGet.org
