@@ -1,0 +1,37 @@
+@model EndOfDayTime.Sample.AspNet.Models.ShiftViewModel
+
+@{
+    ViewData["Title"] = "Shift Entry";
+}
+
+<h2>Shift Entry — EndOfDayTime.AspNet Sample</h2>
+
+<form method="post">
+    <div style="margin-bottom:10px;">
+        <label>Shift start:</label><br />
+        <eodt-input asp-for="Start" />
+        <span asp-validation-for="Start" style="color:red;"></span>
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label>Shift end:</label><br />
+        <eodt-input asp-for="End" />
+        <span asp-validation-for="End" style="color:red;"></span>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Result))
+    {
+        <p style="color:green;">@Model.Result</p>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <p style="color:red;">Please fix the errors above.</p>
+    }
+
+    <button type="submit">Save shift</button>
+</form>
+
+@section Scripts {
+    <script src="~/js/endofdaytime-input.js"></script>
+}
