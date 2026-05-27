@@ -486,6 +486,3 @@ $RECYCLE.BIN/
 # Session and handover documents (developer notes, not project docs)
 HANDOVER.md
 CONTEXT.md
-
-# Standalone WebForms solution file (project is included in the main .sln)
-samples/WebFormsApp/WebFormsApp.sln
