@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net8.0;net48</TargetFrameworks>
   </PropertyGroup>
@@ -25,5 +25,8 @@
     <EmbeddedResource Include="Resources\endofdaytime-input.js">
         <LogicalName>EndOfDayTime.WebForms.endofdaytime-input.js</LogicalName>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>
