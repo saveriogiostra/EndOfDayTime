@@ -64,7 +64,7 @@ jobs:
       - name: Pack
         run: |
           $env:Platform = ""
-          dotnet pack EndOfDayTime.sln --configuration Release --no-incremental --output ./nupkgs
+          dotnet pack EndOfDayTime.sln --configuration Release --output ./nupkgs
         shell: pwsh
 
       - name: Publish to NuGet.org
