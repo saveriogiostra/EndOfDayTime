@@ -69,5 +69,7 @@ jobs:
 
       - name: Publish to NuGet.org
         run: |
-          dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          Get-ChildItem ./nupkgs/*.nupkg | ForEach-Object {
+            dotnet nuget push $_.FullName --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          }
         shell: pwsh
