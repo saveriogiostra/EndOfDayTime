@@ -50,16 +50,15 @@ bool isEod  = end.IsEndOfDay;     // true
 ### JSON serialization (System.Text.Json)
 
 ```csharp
-var options = new JsonSerializerOptions();
-options.Converters.Add(new EndOfDayTimeJsonConverter());
-
-string json    = JsonSerializer.Serialize(new EndOfDayTime(24, 0), options);  // "24:00"
-var    parsed  = JsonSerializer.Deserialize<EndOfDayTime>("\"09:30\"", options);
+string json    = JsonSerializer.Serialize(new EndOfDayTime(24, 0));  // "24:00"
+var    parsed  = JsonSerializer.Deserialize<EndOfDayTime>("\"09:30\"");
 ```
+
+The converter is applied by attribute — no `JsonSerializerOptions` setup is needed. `EndOfDayTime?` properties serialize as `null`.
 
 ### WPF / WinForms / ASP.NET model binding
 
-The `TypeConverter` is registered automatically via `[TypeConverter]` attribute — no configuration needed:
+The `TypeConverter` and the JSON converter are registered automatically via attributes — no configuration needed:
 
 ```xml
 <!-- WPF -->

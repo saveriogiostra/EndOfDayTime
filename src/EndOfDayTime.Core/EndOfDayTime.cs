@@ -6,6 +6,7 @@ namespace EndOfDayTime.Core
     /// Represents a time of day in the range 00:00–24:00, where 24:00 denotes end-of-day midnight.
     /// </summary>
     [System.ComponentModel.TypeConverter(typeof(EndOfDayTimeTypeConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(EndOfDayTimeJsonConverter))]
     public readonly struct EndOfDayTime : IEquatable<EndOfDayTime>, IComparable<EndOfDayTime>
     {
         private readonly short _minutes;

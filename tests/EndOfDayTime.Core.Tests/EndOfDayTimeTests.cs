@@ -222,6 +222,44 @@ namespace EndOfDayTime.Core.Tests
             Assert.Equal(original, deserialized);
         }
 
+        private class JsonShift
+        {
+            public EndOfDayTime Start { get; set; }
+            public EndOfDayTime? End { get; set; }
+        }
+
+        [Fact]
+        public void Json_WithoutOptions_SerializesAsString()
+        {
+            var json = JsonSerializer.Serialize(new JsonShift { Start = new EndOfDayTime(0, 0), End = EndOfDayTime.EndOfDay });
+            Assert.Equal("{\"Start\":\"00:00\",\"End\":\"24:00\"}", json);
+        }
+
+        [Fact]
+        public void Json_WithoutOptions_DeserializesFromString()
+        {
+            var shift = JsonSerializer.Deserialize<JsonShift>("{\"Start\":\"09:30\",\"End\":\"24:00\"}")!;
+            Assert.Equal(new EndOfDayTime(9, 30), shift.Start);
+            Assert.Equal(EndOfDayTime.EndOfDay, shift.End);
+        }
+
+        [Fact]
+        public void Json_Nullable_RoundTripsNull()
+        {
+            var json = JsonSerializer.Serialize(new JsonShift { Start = new EndOfDayTime(9, 0) });
+            Assert.Equal("{\"Start\":\"09:00\",\"End\":null}", json);
+            Assert.Null(JsonSerializer.Deserialize<JsonShift>(json)!.End);
+        }
+
+        [Theory]
+        [InlineData("930")]
+        [InlineData("\"25:00\"")]
+        [InlineData("true")]
+        public void Json_InvalidValue_ThrowsJsonException(string json)
+        {
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<EndOfDayTime>(json));
+        }
+
         // ── TimeSpan conversion ──────────────────────────────────────────
 
         [Fact]
