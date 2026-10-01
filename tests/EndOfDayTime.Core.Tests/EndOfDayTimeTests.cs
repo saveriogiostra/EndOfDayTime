@@ -260,6 +260,30 @@ namespace EndOfDayTime.Core.Tests
             Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<EndOfDayTime>(json));
         }
 
+        [Theory]
+        [InlineData("+5:30")]
+        [InlineData("-0:00")]
+        [InlineData("05:+9")]
+        [InlineData("1 :30")]
+        [InlineData("05: 9")]
+        [InlineData("٠٩:٣٠")]
+        [InlineData("09:30:00")]
+        [InlineData("09.30")]
+        public void TryParse_NonDigitInput_ReturnsFalse(string input)
+        {
+            Assert.False(EndOfDayTime.TryParse(input, out _));
+        }
+
+        [Theory]
+        [InlineData(" 09:30 ", 9, 30)]
+        [InlineData("00:00", 0, 0)]
+        [InlineData("24:00", 24, 0)]
+        public void TryParse_ValidInput_ReturnsTrue(string input, int hour, int minute)
+        {
+            Assert.True(EndOfDayTime.TryParse(input, out var result));
+            Assert.Equal(new EndOfDayTime(hour, minute), result);
+        }
+
         // ── TimeOnly conversion ──────────────────────────────────────────
 
         [Fact]

@@ -75,17 +75,22 @@ namespace EndOfDayTime.Core
         {
             result = default;
             if (string.IsNullOrWhiteSpace(value)) return false;
-            var parts = value.Trim().Split(':');
-            if (parts.Length != 2) return false;
-            if (parts[0].Length != 2 || parts[1].Length != 2) return false;
-            if (!int.TryParse(parts[0], out int hour)) return false;
-            if (!int.TryParse(parts[1], out int minute)) return false;
-            if (hour < 0 || hour > 24) return false;
-            if (minute < 0 || minute > 59) return false;
+            var s = value.Trim();
+            // Exactly "HH:mm" with ASCII digits — int.TryParse would also accept
+            // signs, inner whitespace and culture-specific input.
+            if (s.Length != 5 || s[2] != ':') return false;
+            if (!IsAsciiDigit(s[0]) || !IsAsciiDigit(s[1]) ||
+                !IsAsciiDigit(s[3]) || !IsAsciiDigit(s[4])) return false;
+            int hour = (s[0] - '0') * 10 + (s[1] - '0');
+            int minute = (s[3] - '0') * 10 + (s[4] - '0');
+            if (hour > 24) return false;
+            if (minute > 59) return false;
             if (hour == 24 && minute != 0) return false;
             result = new EndOfDayTime((short)(hour * 60 + minute));
             return true;
         }
+
+        private static bool IsAsciiDigit(char c) => c >= '0' && c <= '9';
 
         /// <summary>Returns the time formatted as HH:mm.</summary>
         public override string ToString() => $"{Hour:D2}:{Minute:D2}";
