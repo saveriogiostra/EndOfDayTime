@@ -260,6 +260,35 @@ namespace EndOfDayTime.Core.Tests
             Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<EndOfDayTime>(json));
         }
 
+        // ── TimeOnly conversion ──────────────────────────────────────────
+
+        [Fact]
+        public void ToTimeOnly_ReturnsCorrectValue()
+        {
+            Assert.Equal(new TimeOnly(9, 30), new EndOfDayTime(9, 30).ToTimeOnly());
+            Assert.Equal(new TimeOnly(0, 0), (TimeOnly)new EndOfDayTime(0, 0));
+        }
+
+        [Fact]
+        public void ToTimeOnly_EndOfDay_Throws()
+        {
+            Assert.Throws<InvalidOperationException>(() => EndOfDayTime.EndOfDay.ToTimeOnly());
+            Assert.Throws<InvalidOperationException>(() => (TimeOnly)EndOfDayTime.EndOfDay);
+        }
+
+        [Fact]
+        public void FromTimeOnly_ReturnsCorrectValue()
+        {
+            Assert.Equal(new EndOfDayTime(17, 45), EndOfDayTime.FromTimeOnly(new TimeOnly(17, 45)));
+            Assert.Equal(new EndOfDayTime(17, 45), (EndOfDayTime)new TimeOnly(17, 45));
+        }
+
+        [Fact]
+        public void FromTimeOnly_DiscardsSeconds()
+        {
+            Assert.Equal(new EndOfDayTime(23, 59), EndOfDayTime.FromTimeOnly(new TimeOnly(23, 59, 59, 999)));
+        }
+
         // ── TimeSpan conversion ──────────────────────────────────────────
 
         [Fact]

@@ -138,8 +138,16 @@ namespace EndOfDayTime.Core
         /// <summary>Explicit conversion to TimeOnly. Throws if value is 24:00.</summary>
         public static explicit operator TimeOnly(EndOfDayTime t) => t.ToTimeOnly();
 
-        /// <summary>Implicit conversion from TimeOnly.</summary>
-        public static implicit operator EndOfDayTime(TimeOnly t) => new EndOfDayTime(t.Hour, t.Minute);
+        /// <summary>
+        /// Creates an EndOfDayTime from a TimeOnly. Seconds and smaller units are discarded.
+        /// </summary>
+        public static EndOfDayTime FromTimeOnly(TimeOnly time) => new EndOfDayTime(time.Hour, time.Minute);
+
+        /// <summary>
+        /// Explicit conversion from TimeOnly. Seconds and smaller units are discarded,
+        /// which is why the conversion is not implicit.
+        /// </summary>
+        public static explicit operator EndOfDayTime(TimeOnly t) => FromTimeOnly(t);
 #endif
 
         /// <summary>Converts to TimeSpan.</summary>

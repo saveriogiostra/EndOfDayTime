@@ -47,6 +47,17 @@ bool isLast = end > start;        // true
 bool isEod  = end.IsEndOfDay;     // true
 ```
 
+### TimeOnly conversion (.NET 8+)
+
+```csharp
+TimeOnly time = new EndOfDayTime(9, 30).ToTimeOnly();          // 09:30
+var      t    = EndOfDayTime.FromTimeOnly(new TimeOnly(17, 45)); // 17:45, seconds are discarded
+
+EndOfDayTime.EndOfDay.ToTimeOnly(); // throws — 24:00 has no TimeOnly equivalent
+```
+
+Both conversions are also available as explicit casts.
+
 ### JSON serialization (System.Text.Json)
 
 ```csharp
