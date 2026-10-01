@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <Platform>Any CPU</Platform>
+    <Platform>AnyCPU</Platform>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsPackable)' != 'false'">
