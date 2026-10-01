@@ -49,10 +49,21 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      # The package version comes from the tag (v1.2.3 -> 1.2.3), not from Directory.Build.props.
+      - name: Resolve version from tag
+        id: version
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+            throw "Tag '$env:GITHUB_REF_NAME' is not a valid version. Expected vMAJOR.MINOR.PATCH[-prerelease]."
+          }
+          "version=$version" >> $env:GITHUB_OUTPUT
+        shell: pwsh
+
       - name: Build
         run: |
           $env:Platform = ""
-          dotnet build EndOfDayTime.sln --configuration Release --no-incremental
+          dotnet build EndOfDayTime.sln --configuration Release --no-incremental -p:Version=${{ steps.version.outputs.version }}
         shell: pwsh
 
       - name: Run tests
@@ -64,7 +75,18 @@ jobs:
       - name: Pack
         run: |
           $env:Platform = ""
-          dotnet pack EndOfDayTime.sln --configuration Release --output ./nupkgs
+          dotnet pack EndOfDayTime.sln --configuration Release --no-build --output ./nupkgs -p:Version=${{ steps.version.outputs.version }}
+        shell: pwsh
+
+      - name: Verify package versions
+        run: |
+          $version = "${{ steps.version.outputs.version }}"
+          $packages = @(Get-ChildItem ./nupkgs/*.nupkg)
+          if ($packages.Count -eq 0) { throw "No packages were produced." }
+          $wrong = @($packages | Where-Object { $_.Name -notlike "*.$version.nupkg" })
+          if ($wrong.Count -gt 0) {
+            throw "Packages not at version ${version}: $($wrong.Name -join ', ')"
+          }
         shell: pwsh
 
       - name: Publish to NuGet.org
