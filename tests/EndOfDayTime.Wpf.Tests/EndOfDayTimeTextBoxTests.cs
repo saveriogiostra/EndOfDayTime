@@ -169,6 +169,68 @@ namespace EndOfDayTime.Wpf.Tests
             });
         }
 
+        [Fact]
+        public void Converter_ConvertBack_ValidText_ReturnsValue()
+        {
+            var converter = new EndOfDayTimeConverter();
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            Assert.Equal(new EodtCore.EndOfDayTime(0, 0),
+                converter.ConvertBack("00:00", typeof(EodtCore.EndOfDayTime), null!, culture));
+            Assert.Equal(EodtCore.EndOfDayTime.EndOfDay,
+                converter.ConvertBack("24:00", typeof(EodtCore.EndOfDayTime?), null!, culture));
+        }
+
+        [Theory]
+        [InlineData("25:00")]
+        [InlineData("12:3")]
+        [InlineData("abc")]
+        public void Converter_ConvertBack_InvalidText_ReturnsUnsetValue(string text)
+        {
+            var converter = new EndOfDayTimeConverter();
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            Assert.Same(DependencyProperty.UnsetValue,
+                converter.ConvertBack(text, typeof(EodtCore.EndOfDayTime), null!, culture));
+            Assert.Same(DependencyProperty.UnsetValue,
+                converter.ConvertBack(text, typeof(EodtCore.EndOfDayTime?), null!, culture));
+        }
+
+        [Fact]
+        public void Converter_ConvertBack_EmptyText_DependsOnTargetNullability()
+        {
+            var converter = new EndOfDayTimeConverter();
+            var culture = System.Globalization.CultureInfo.InvariantCulture;
+            Assert.Null(converter.ConvertBack("", typeof(EodtCore.EndOfDayTime?), null!, culture));
+            Assert.Same(DependencyProperty.UnsetValue,
+                converter.ConvertBack("", typeof(EodtCore.EndOfDayTime), null!, culture));
+        }
+
+        [Fact]
+        public void Converter_InvalidText_LeavesBoundSourceUnchanged()
+        {
+            RunOnSta(() =>
+            {
+                var source = new BoundSource { Time = new EodtCore.EndOfDayTime(9, 30) };
+                var textBox = new System.Windows.Controls.TextBox();
+                textBox.SetBinding(System.Windows.Controls.TextBox.TextProperty,
+                    new System.Windows.Data.Binding(nameof(BoundSource.Time))
+                    {
+                        Source = source,
+                        Mode = System.Windows.Data.BindingMode.TwoWay,
+                        UpdateSourceTrigger = System.Windows.Data.UpdateSourceTrigger.PropertyChanged,
+                        Converter = new EndOfDayTimeConverter()
+                    });
+                Assert.Equal("09:30", textBox.Text);
+
+                textBox.Text = "25:00";
+                Assert.Equal(new EodtCore.EndOfDayTime(9, 30), source.Time);
+                Assert.True(System.Windows.Controls.Validation.GetHasError(textBox));
+
+                textBox.Text = "17:00";
+                Assert.Equal(new EodtCore.EndOfDayTime(17, 0), source.Time);
+                Assert.False(System.Windows.Controls.Validation.GetHasError(textBox));
+            });
+        }
+
         private class BoundSource
         {
             public EodtCore.EndOfDayTime? Time { get; set; }
