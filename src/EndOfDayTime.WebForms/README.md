@@ -58,9 +58,9 @@ protected void Page_Load(object sender, EventArgs e)
 
 protected void SaveButton_Click(object sender, EventArgs e)
 {
-    if (ShiftEnd.IsValid)
+    if (ShiftEnd.TimeValue.HasValue) // null when empty or invalid
     {
-        var value = ShiftEnd.TimeValue;
+        var value = ShiftEnd.TimeValue.Value;
         // use value
     }
 }

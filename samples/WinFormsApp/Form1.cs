@@ -73,14 +73,12 @@ namespace EndOfDayTime.Sample.WinForms
             var startValid = _startBox.Validate();
             var endValid = _endBox.Validate();
 
-            if (!startValid || !endValid)
+            if (!startValid || !endValid ||
+                _startBox.TimeValue is not { } start || _endBox.TimeValue is not { } end)
             {
                 _resultLabel.Text = "Please fix the errors before saving.";
                 return;
             }
-
-            var start = _startBox.TimeValue;
-            var end = _endBox.TimeValue;
 
             if (end <= start)
             {

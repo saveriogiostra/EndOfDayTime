@@ -11,20 +11,20 @@ namespace EndOfDayTime.Sample.Wpf
     {
         // ── Fields ───────────────────────────────────────────────────────
 
-        private EodtCore.EndOfDayTime _start;
-        private EodtCore.EndOfDayTime _end;
+        private EodtCore.EndOfDayTime? _start;
+        private EodtCore.EndOfDayTime? _end;
         private string _resultMessage = "Enter a shift and click Save.";
         private Brush _resultColor = Brushes.Black;
 
         // ── Properties ───────────────────────────────────────────────────
 
-        public EodtCore.EndOfDayTime Start
+        public EodtCore.EndOfDayTime? Start
         {
             get => _start;
             set { _start = value; OnPropertyChanged(); }
         }
 
-        public EodtCore.EndOfDayTime End
+        public EodtCore.EndOfDayTime? End
         {
             get => _end;
             set { _end = value; OnPropertyChanged(); }
@@ -53,29 +53,29 @@ namespace EndOfDayTime.Sample.Wpf
 
         private void Save()
         {
-            if (Start == default)
+            if (Start is not { } start)
             {
                 ResultMessage = "Please enter a start time.";
                 ResultColor = Brushes.Red;
                 return;
             }
 
-            if (End == default)
+            if (End is not { } end)
             {
                 ResultMessage = "Please enter an end time.";
                 ResultColor = Brushes.Red;
                 return;
             }
 
-            if (End <= Start)
+            if (end <= start)
             {
                 ResultMessage = "End time must be after start time.";
                 ResultColor = Brushes.Red;
                 return;
             }
 
-            var duration = End - Start;
-            ResultMessage = $"Shift saved!\nStart: {Start}\nEnd: {End}\nDuration: {duration.TotalHours:F1}h";
+            var duration = end - start;
+            ResultMessage = $"Shift saved!\nStart: {start}\nEnd: {end}\nDuration: {duration.TotalHours:F1}h";
             ResultColor = Brushes.Green;
         }
 

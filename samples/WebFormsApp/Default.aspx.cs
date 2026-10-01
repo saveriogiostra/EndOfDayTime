@@ -13,14 +13,14 @@ namespace WebFormsApp
             pnlResult.Visible = false;
             pnlError.Visible = false;
 
-            if (!eodtStart.IsValid || !eodtEnd.IsValid)
+            if (!eodtStart.TimeValue.HasValue || !eodtEnd.TimeValue.HasValue)
             {
                 ShowError("Inserire orari validi nel formato HH:mm (00:00–24:00).");
                 return;
             }
 
-            var start = eodtStart.TimeValue;
-            var end   = eodtEnd.TimeValue;
+            var start = eodtStart.TimeValue.Value;
+            var end   = eodtEnd.TimeValue.Value;
 
             if (end <= start)
             {

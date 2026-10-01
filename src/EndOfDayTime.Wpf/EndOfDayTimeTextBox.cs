@@ -29,17 +29,20 @@ namespace EndOfDayTime.Wpf
         public static readonly DependencyProperty TimeValueProperty =
             DependencyProperty.Register(
                 nameof(TimeValue),
-                typeof(EodtCore.EndOfDayTime),
+                typeof(EodtCore.EndOfDayTime?),
                 typeof(EndOfDayTimeTextBox),
                 new FrameworkPropertyMetadata(
-                    default(EodtCore.EndOfDayTime),
+                    null,
                     FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
                     OnTimeValueChanged));
 
-        /// <summary>The current EndOfDayTime value. Setting this updates the displayed text.</summary>
-        public EodtCore.EndOfDayTime TimeValue
+        /// <summary>
+        /// The current EndOfDayTime value, or null when the field is empty.
+        /// Setting this updates the displayed text.
+        /// </summary>
+        public EodtCore.EndOfDayTime? TimeValue
         {
-            get => (EodtCore.EndOfDayTime)GetValue(TimeValueProperty);
+            get => (EodtCore.EndOfDayTime?)GetValue(TimeValueProperty);
             set => SetValue(TimeValueProperty, value);
         }
 
@@ -50,11 +53,11 @@ namespace EndOfDayTime.Wpf
             EventManager.RegisterRoutedEvent(
                 nameof(TimeValueChanged),
                 RoutingStrategy.Bubble,
-                typeof(RoutedPropertyChangedEventHandler<EodtCore.EndOfDayTime>),
+                typeof(RoutedPropertyChangedEventHandler<EodtCore.EndOfDayTime?>),
                 typeof(EndOfDayTimeTextBox));
 
         /// <summary>Raised when <see cref="TimeValue"/> changes.</summary>
-        public event RoutedPropertyChangedEventHandler<EodtCore.EndOfDayTime> TimeValueChanged
+        public event RoutedPropertyChangedEventHandler<EodtCore.EndOfDayTime?> TimeValueChanged
         {
             add => AddHandler(TimeValueChangedEvent, value);
             remove => RemoveHandler(TimeValueChangedEvent, value);
@@ -89,15 +92,14 @@ namespace EndOfDayTime.Wpf
             if (d is not EndOfDayTimeTextBox control) return;
             if (control._updating) return;
 
-            var newValue = (EodtCore.EndOfDayTime)e.NewValue;
-            var oldValue = (EodtCore.EndOfDayTime)e.OldValue;
+            var newValue = (EodtCore.EndOfDayTime?)e.NewValue;
+            var oldValue = (EodtCore.EndOfDayTime?)e.OldValue;
 
-            if (newValue == default)
-                control.SetDigits(string.Empty);
-            else
-                control.SetDigits($"{newValue.Hour:D2}{newValue.Minute:D2}");
+            control.SetDigits(newValue.HasValue
+                ? $"{newValue.Value.Hour:D2}{newValue.Value.Minute:D2}"
+                : string.Empty);
 
-            control.RaiseEvent(new RoutedPropertyChangedEventArgs<EodtCore.EndOfDayTime>(
+            control.RaiseEvent(new RoutedPropertyChangedEventArgs<EodtCore.EndOfDayTime?>(
                 oldValue, newValue, TimeValueChangedEvent));
         }
 
@@ -134,6 +136,12 @@ namespace EndOfDayTime.Wpf
                 Validate();
             else if (_digits.Length > 0)
                 SetValidationState(true, null);
+            else if (TimeValue.HasValue)
+            {
+                _updating = true;
+                TimeValue = null;
+                _updating = false;
+            }
         }
 
         // ── Position mapping ──────────────────────────────────────────────

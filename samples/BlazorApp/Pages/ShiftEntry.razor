@@ -32,21 +32,28 @@
 
     private void HandleSubmit()
     {
-        if (_model.End <= _model.Start)
+        if (_model.Start is not { } start || _model.End is not { } end)
+        {
+            _result = "Please enter both times.";
+            _resultColor = "red";
+            return;
+        }
+
+        if (end <= start)
         {
             _result = "End time must be after start time.";
             _resultColor = "red";
             return;
         }
 
-        var duration = _model.End - _model.Start;
-        _result = $"Shift saved! Start: {_model.Start} End: {_model.End} Duration: {(int)duration.TotalHours}h {duration.Minutes:D2}m";
+        var duration = end - start;
+        _result = $"Shift saved! Start: {start} End: {end} Duration: {(int)duration.TotalHours}h {duration.Minutes:D2}m";
         _resultColor = "green";
     }
 
     public class ShiftModel
     {
-        public EodtCore.EndOfDayTime Start { get; set; }
-        public EodtCore.EndOfDayTime End { get; set; }
+        public EodtCore.EndOfDayTime? Start { get; set; }
+        public EodtCore.EndOfDayTime? End { get; set; }
     }
 }

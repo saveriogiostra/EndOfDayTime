@@ -61,7 +61,7 @@ namespace EndOfDayTime.AspNet
                 output.Attributes.SetAttribute("id", For.Name.Replace(".", "_"));
 
                 var value = For.Model;
-                if (value is EodtCore.EndOfDayTime t && t != default)
+                if (value is EodtCore.EndOfDayTime t)
                     output.Attributes.SetAttribute("value", t.ToString());
             }
         }

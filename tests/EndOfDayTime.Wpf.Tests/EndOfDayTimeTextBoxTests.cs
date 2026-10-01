@@ -32,12 +32,12 @@ namespace EndOfDayTime.Wpf.Tests
         // ── Construction ─────────────────────────────────────────────────
 
         [Fact]
-        public void Constructor_DefaultTimeValue_IsDefault()
+        public void Constructor_DefaultTimeValue_IsNull()
         {
             RunOnSta(() =>
             {
                 var control = new EndOfDayTimeTextBox();
-                Assert.Equal(default(EodtCore.EndOfDayTime), control.TimeValue);
+                Assert.Null(control.TimeValue);
             });
         }
 
@@ -76,15 +76,49 @@ namespace EndOfDayTime.Wpf.Tests
         }
 
         [Fact]
-        public void SetTimeValue_Default_TextIsEmpty()
+        public void SetTimeValue_Null_TextIsEmpty()
         {
             RunOnSta(() =>
             {
                 var control = new EndOfDayTimeTextBox();
                 control.TimeValue = new EodtCore.EndOfDayTime(9, 0);
-                control.TimeValue = default;
+                control.TimeValue = null;
                 Assert.Equal(string.Empty, control.Text);
             });
+        }
+
+        [Fact]
+        public void SetTimeValue_Midnight_UpdatesText()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                control.TimeValue = new EodtCore.EndOfDayTime(0, 0);
+                Assert.Equal("00:00", control.Text);
+                Assert.Equal(new EodtCore.EndOfDayTime(0, 0), control.TimeValue);
+            });
+        }
+
+        [Fact]
+        public void ClearText_SetsTimeValueToNull()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                control.TimeValue = new EodtCore.EndOfDayTime(9, 0);
+                control.Text = string.Empty;
+                Assert.Null(control.TimeValue);
+            });
+        }
+
+        [Fact]
+        public void Converter_Midnight_ConvertsToText()
+        {
+            var converter = new EndOfDayTimeConverter();
+            var text = converter.Convert(
+                new EodtCore.EndOfDayTime(0, 0), typeof(string), null!,
+                System.Globalization.CultureInfo.InvariantCulture);
+            Assert.Equal("00:00", text);
         }
 
         // ── Validate() ───────────────────────────────────────────────────

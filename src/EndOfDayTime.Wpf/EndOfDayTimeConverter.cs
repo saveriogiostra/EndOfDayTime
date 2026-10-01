@@ -14,7 +14,7 @@ namespace EndOfDayTime.Wpf
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is EodtCore.EndOfDayTime t)
-                return t == default ? string.Empty : t.ToString();
+                return t.ToString();
             return string.Empty;
         }
 

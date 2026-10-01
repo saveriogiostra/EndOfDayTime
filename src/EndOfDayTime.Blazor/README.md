@@ -49,7 +49,8 @@ dotnet add package EndOfDayTime.Blazor
 - Accepts any value in `HH:mm` format (00:00–24:00)
 - Shows an inline error message on blur if the value is invalid
 - Integrates with `EditForm` validation — `ValidationMessage` works as expected
-- Empty input is allowed (maps to `default(EndOfDayTime)`)
+- Bind to `EndOfDayTime?` to allow an empty input (maps to `null`); with a non-nullable `EndOfDayTime` an empty input is a validation error
+- `00:00` is a real value and is displayed as `00:00`
 
 ## Requirements
 

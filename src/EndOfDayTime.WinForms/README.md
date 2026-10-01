@@ -16,7 +16,7 @@ dotnet add package EndOfDayTime.WinForms
 var timeBox = new EndOfDayTimeTextBox();
 timeBox.TimeValueChanged += (s, e) =>
 {
-    Console.WriteLine($"New value: {e}"); // e is EndOfDayTime
+    Console.WriteLine($"New value: {e}"); // e is EndOfDayTime? (null when the field is cleared)
 };
 this.Controls.Add(timeBox);
 ```
@@ -33,7 +33,7 @@ errorProvider.Attach(timeBox); // errors shown automatically on invalid input
 ```csharp
 if (timeBox.Validate())
 {
-    var value = timeBox.TimeValue; // guaranteed valid EndOfDayTime
+    var value = timeBox.TimeValue!.Value; // guaranteed valid EndOfDayTime
 }
 else
 {
@@ -46,13 +46,16 @@ else
 ```csharp
 timeBox.TimeValue = new EndOfDayTime(24, 0); // displays "24:00"
 timeBox.TimeValue = EndOfDayTime.EndOfDay;   // same result
+timeBox.TimeValue = new EndOfDayTime(0, 0);  // displays "00:00"
+timeBox.TimeValue = null;                    // clears the field
 ```
 
 ## Behaviour
 
 - Validates on lost focus and on Enter key
+- `TimeValue` is an `EndOfDayTime?` — `null` means the field is empty, `00:00` is a real value
 - `TimeValue` property updates the displayed text automatically
-- `TimeValueChanged` fires when a valid value is confirmed
+- `TimeValueChanged` fires when a valid value is confirmed or the field is cleared
 - `IsValidChanged` fires when validation state changes — useful for enabling/disabling Save buttons
 - `ErrorMessage` contains the last validation error
 - `MaxLength` is set to 5 automatically (`HH:mm`)

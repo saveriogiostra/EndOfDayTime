@@ -17,7 +17,7 @@ namespace EndOfDayTime.WinForms
     {
         // ── Fields ───────────────────────────────────────────────────────
 
-        private EodtCore.EndOfDayTime _timeValue;
+        private EodtCore.EndOfDayTime? _timeValue;
         private bool _isValid = true;
         private string _errorMessage = string.Empty;
         private bool _updating = false;
@@ -25,8 +25,8 @@ namespace EndOfDayTime.WinForms
 
         // ── Events ───────────────────────────────────────────────────────
 
-        /// <summary>Raised when TimeValue changes to a valid parsed value.</summary>
-        public event EventHandler<EodtCore.EndOfDayTime>? TimeValueChanged;
+        /// <summary>Raised when TimeValue changes to a valid parsed value, or to null when the field is cleared.</summary>
+        public event EventHandler<EodtCore.EndOfDayTime?>? TimeValueChanged;
 
         /// <summary>Raised when validation state changes.</summary>
         public event EventHandler<bool>? IsValidChanged;
@@ -34,22 +34,23 @@ namespace EndOfDayTime.WinForms
         // ── Properties ───────────────────────────────────────────────────
 
         /// <summary>
-        /// The current EndOfDayTime value. Setting this updates the displayed text.
+        /// The current EndOfDayTime value, or null when the field is empty.
+        /// Setting this updates the displayed text.
         /// </summary>
         [Browsable(true)]
         [Category("Data")]
-        [Description("The current EndOfDayTime value (00:00–24:00).")]
-        public EodtCore.EndOfDayTime TimeValue
+        [DefaultValue(null)]
+        [Description("The current EndOfDayTime value (00:00–24:00), or null when empty.")]
+        public EodtCore.EndOfDayTime? TimeValue
         {
             get => _timeValue;
             set
             {
                 if (_timeValue == value) return;
                 _timeValue = value;
-                if (value == default)
-                    SetDigits(string.Empty);
-                else
-                    SetDigits($"{value.Hour:D2}{value.Minute:D2}");
+                SetDigits(value.HasValue
+                    ? $"{value.Value.Hour:D2}{value.Value.Minute:D2}"
+                    : string.Empty);
                 TimeValueChanged?.Invoke(this, value);
             }
         }
@@ -127,6 +128,15 @@ namespace EndOfDayTime.WinForms
                 Validate();
             else if (_digits.Length > 0)
                 SetValidationState(true, string.Empty);
+            else
+                SetTimeValueCore(null);
+        }
+
+        private void SetTimeValueCore(EodtCore.EndOfDayTime? value)
+        {
+            if (_timeValue == value) return;
+            _timeValue = value;
+            TimeValueChanged?.Invoke(this, value);
         }
 
         // ── Position mapping ─────────────────────────────────────────────
@@ -268,8 +278,7 @@ namespace EndOfDayTime.WinForms
             }
 
             SetValidationState(true, string.Empty);
-            _timeValue = parsed;
-            TimeValueChanged?.Invoke(this, parsed);
+            SetTimeValueCore(parsed);
             return true;
         }
 
