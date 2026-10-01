@@ -61,6 +61,7 @@ else
 ## Behaviour
 
 - Validates on lost focus and on Enter key
+- An empty field is valid (`TimeValue` is `null`); set `IsRequired="True"` to make it an error. `EndOfDayTimeValidationRule` has the same `IsRequired` property
 - `TimeValue` dependency property supports two-way binding
 - `TimeValue` is an `EndOfDayTime?` — `null` means the field is empty, `00:00` is a real value; bind it to an `EndOfDayTime?` property to allow an empty field
 - `TimeValueChanged` is a bubbling routed event

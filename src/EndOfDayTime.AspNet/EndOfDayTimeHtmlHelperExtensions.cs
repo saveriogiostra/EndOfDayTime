@@ -41,9 +41,9 @@ namespace EndOfDayTime.AspNet
         }
 
         /// <summary>
-        /// Builds the TagBuilder for an EndOfDayTime input — used internally and by tests.
+        /// Builds the TagBuilder for an EndOfDayTime input.
         /// </summary>
-        public static IHtmlContent BuildEndOfDayTimeInput(
+        internal static IHtmlContent BuildEndOfDayTimeInput(
             string name,
             EodtCore.EndOfDayTime? value = null,
             string? cssClass = null)

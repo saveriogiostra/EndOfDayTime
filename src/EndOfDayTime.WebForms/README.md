@@ -75,11 +75,15 @@ private void OnShiftEndChanged(object sender, EventArgs e)
 }
 ```
 
-### Optional CSS class
+### Standard TextBox properties
+
+The control derives from `TextBox`, so `CssClass`, `Enabled`, `Width`, `AutoPostBack`, `TabIndex` and the other standard members work as usual:
 
 ```aspx
-<eodt:EndOfDayTimeTextBox ID="ShiftEnd" runat="server" InputCssClass="my-time-input" />
+<eodt:EndOfDayTimeTextBox ID="ShiftEnd" runat="server" CssClass="my-time-input" />
 ```
+
+`Text` holds the raw input. After a postback with an invalid value, `Text` keeps what the user typed, `IsValid` is `false` and `TimeValue` is `null`.
 
 ## Behaviour
 

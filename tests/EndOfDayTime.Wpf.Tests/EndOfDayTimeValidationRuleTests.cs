@@ -40,26 +40,26 @@ namespace EndOfDayTime.Wpf.Tests
 
         // ── Empty/null inputs ────────────────────────────────────────────
 
-        [Fact]
-        public void Validate_EmptyString_ReturnsInvalid()
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("   ")]
+        public void Validate_Empty_Required_ReturnsInvalid(string? input)
         {
-            var result = _rule.Validate(string.Empty, CultureInfo.InvariantCulture);
+            var rule = new EndOfDayTimeValidationRule { IsRequired = true };
+            var result = rule.Validate(input!, CultureInfo.InvariantCulture);
             Assert.False(result.IsValid);
             Assert.Equal("Time is required.", result.ErrorContent);
         }
 
-        [Fact]
-        public void Validate_NullValue_ReturnsInvalid()
+        [Theory]
+        [InlineData("")]
+        [InlineData(null)]
+        [InlineData("   ")]
+        public void Validate_Empty_NotRequired_ReturnsValid(string? input)
         {
-            var result = _rule.Validate(null!, CultureInfo.InvariantCulture);
-            Assert.False(result.IsValid);
-        }
-
-        [Fact]
-        public void Validate_Whitespace_ReturnsInvalid()
-        {
-            var result = _rule.Validate("   ", CultureInfo.InvariantCulture);
-            Assert.False(result.IsValid);
+            var result = _rule.Validate(input!, CultureInfo.InvariantCulture);
+            Assert.True(result.IsValid);
         }
 
         // ── Error messages ───────────────────────────────────────────────

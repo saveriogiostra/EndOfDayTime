@@ -278,21 +278,34 @@ namespace EndOfDayTime.Wpf.Tests
             RunOnSta(() =>
             {
                 var control = new EndOfDayTimeTextBox();
-                control.Text = "bad";
+                control.Text = "25:00";
                 Assert.False(control.Validate());
                 Assert.False(control.IsValid);
             });
         }
 
         [Fact]
-        public void Validate_EmptyText_ReturnsFalse()
+        public void Validate_EmptyText_Required_ReturnsFalse()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox { IsRequired = true };
+                control.Text = string.Empty;
+                Assert.False(control.Validate());
+                Assert.False(control.IsValid);
+            });
+        }
+
+        [Fact]
+        public void Validate_EmptyText_NotRequired_ReturnsTrue()
         {
             RunOnSta(() =>
             {
                 var control = new EndOfDayTimeTextBox();
                 control.Text = string.Empty;
-                Assert.False(control.Validate());
-                Assert.False(control.IsValid);
+                Assert.True(control.Validate());
+                Assert.True(control.IsValid);
+                Assert.Null(control.TimeValue);
             });
         }
 

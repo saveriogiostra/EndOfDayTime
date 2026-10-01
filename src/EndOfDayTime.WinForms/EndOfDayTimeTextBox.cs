@@ -55,6 +55,15 @@ namespace EndOfDayTime.WinForms
             }
         }
 
+        /// <summary>
+        /// When true, an empty field fails validation. Defaults to false:
+        /// an empty field is valid and <see cref="TimeValue"/> is null.
+        /// </summary>
+        [Category("Behavior")]
+        [DefaultValue(false)]
+        [Description("When true, an empty field fails validation.")]
+        public bool IsRequired { get; set; }
+
         /// <summary>True if the current text is a valid EndOfDayTime.</summary>
         [Browsable(false)]
         public bool IsValid => _isValid;
@@ -264,15 +273,20 @@ namespace EndOfDayTime.WinForms
 
         /// <summary>
         /// Validates the current text. Updates IsValid and ErrorMessage.
-        /// Returns true if valid.
+        /// Returns true if valid. An empty field is valid unless <see cref="IsRequired"/> is set.
         /// </summary>
         public bool Validate()
         {
             if (string.IsNullOrWhiteSpace(Text))
             {
                 SetTimeValueCore(null);
-                SetValidationState(false, "Time is required.");
-                return false;
+                if (IsRequired)
+                {
+                    SetValidationState(false, "Time is required.");
+                    return false;
+                }
+                SetValidationState(true, string.Empty);
+                return true;
             }
 
             if (!EodtCore.EndOfDayTime.TryParse(Text, out var parsed))
@@ -301,8 +315,7 @@ namespace EndOfDayTime.WinForms
         protected override void OnLostFocus(EventArgs e)
         {
             base.OnLostFocus(e);
-            if (_digits.Length > 0)
-                Validate();
+            Validate();
         }
 
         /// <inheritdoc/>

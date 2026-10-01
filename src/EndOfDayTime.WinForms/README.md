@@ -53,6 +53,7 @@ timeBox.TimeValue = null;                    // clears the field
 ## Behaviour
 
 - Validates on lost focus and on Enter key
+- An empty field is valid (`TimeValue` is `null`); set `IsRequired = true` to make it an error
 - `TimeValue` is an `EndOfDayTime?` — `null` means the field is empty, `00:00` is a real value
 - `TimeValue` property updates the displayed text automatically
 - `TimeValueChanged` fires when a valid value is confirmed or the field is cleared

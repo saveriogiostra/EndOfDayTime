@@ -175,7 +175,7 @@ namespace EndOfDayTime.WinForms.Tests
         public void Validate_InvalidText_ReturnsFalse()
         {
             var control = new EndOfDayTimeTextBox();
-            control.Text = "bad";
+            control.Text = "25:00";
             Assert.False(control.Validate());
             Assert.False(control.IsValid);
         }
@@ -190,19 +190,30 @@ namespace EndOfDayTime.WinForms.Tests
         }
 
         [Fact]
-        public void Validate_EmptyText_ReturnsFalse()
+        public void Validate_EmptyText_Required_ReturnsFalse()
         {
-            var control = new EndOfDayTimeTextBox();
+            var control = new EndOfDayTimeTextBox { IsRequired = true };
             control.Text = string.Empty;
             Assert.False(control.Validate());
             Assert.Equal("Time is required.", control.ErrorMessage);
         }
 
         [Fact]
+        public void Validate_EmptyText_NotRequired_ReturnsTrue()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = string.Empty;
+            Assert.True(control.Validate());
+            Assert.True(control.IsValid);
+            Assert.Null(control.TimeValue);
+            Assert.Equal(string.Empty, control.ErrorMessage);
+        }
+
+        [Fact]
         public void Validate_AfterInvalid_ThenValid_ClearsError()
         {
             var control = new EndOfDayTimeTextBox();
-            control.Text = "bad";
+            control.Text = "25:00";
             control.Validate();
             Assert.False(control.IsValid);
 
@@ -246,7 +257,7 @@ namespace EndOfDayTime.WinForms.Tests
             int count = 0;
             control.IsValidChanged += (s, e) => count++;
 
-            control.Text = "bad";
+            control.Text = "25:00";
             control.Validate(); // valid → invalid: fires
             Assert.Equal(1, count);
 
@@ -262,11 +273,11 @@ namespace EndOfDayTime.WinForms.Tests
             int count = 0;
             control.IsValidChanged += (s, e) => count++;
 
-            control.Text = "bad";
+            control.Text = "25:00";
             control.Validate(); // valid → invalid: fires
             Assert.Equal(1, count);
 
-            control.Text = "nope"; // 4 chars — no auto-validate
+            control.Text = "99:99";
             control.Validate(); // invalid → invalid: does not fire
             Assert.Equal(1, count);
         }
@@ -295,7 +306,7 @@ namespace EndOfDayTime.WinForms.Tests
             var errorProvider = new ErrorProvider();
             errorProvider.Attach(control);
 
-            control.Text = "bad";
+            control.Text = "25:00";
             control.Validate();
             control.Text = "09:00";
             control.Validate();
