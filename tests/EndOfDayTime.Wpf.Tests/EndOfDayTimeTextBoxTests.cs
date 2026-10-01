@@ -198,5 +198,47 @@ namespace EndOfDayTime.Wpf.Tests
                 Assert.Equal(new EodtCore.EndOfDayTime(9, 30), received!.Value);
             });
         }
+
+        [Fact]
+        public void TimeValueChanged_Fires_WhenUserEntersText()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                var received = new List<EodtCore.EndOfDayTime?>();
+                control.TimeValueChanged += (s, e) => received.Add(e.NewValue);
+                control.Text = "09:30";
+                Assert.Equal(new EodtCore.EndOfDayTime?[] { new EodtCore.EndOfDayTime(9, 30) }, received);
+                Assert.Equal("09:30", control.Text);
+            });
+        }
+
+        [Fact]
+        public void TimeValueChanged_Fires_WhenUserClearsText()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                control.Text = "09:30";
+                var received = new List<EodtCore.EndOfDayTime?>();
+                control.TimeValueChanged += (s, e) => received.Add(e.NewValue);
+                control.Text = string.Empty;
+                Assert.Equal(new EodtCore.EndOfDayTime?[] { null }, received);
+            });
+        }
+
+        [Fact]
+        public void TimeValueChanged_DoesNotFire_WhenValueUnchanged()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                control.Text = "09:30";
+                int count = 0;
+                control.TimeValueChanged += (s, e) => count++;
+                control.Validate();
+                Assert.Equal(0, count);
+            });
+        }
     }
 }

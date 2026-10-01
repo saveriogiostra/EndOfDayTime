@@ -90,14 +90,16 @@ namespace EndOfDayTime.Wpf
         private static void OnTimeValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not EndOfDayTimeTextBox control) return;
-            if (control._updating) return;
 
             var newValue = (EodtCore.EndOfDayTime?)e.NewValue;
             var oldValue = (EodtCore.EndOfDayTime?)e.OldValue;
 
-            control.SetDigits(newValue.HasValue
-                ? $"{newValue.Value.Hour:D2}{newValue.Value.Minute:D2}"
-                : string.Empty);
+            // When the change comes from the user's own input the text is already
+            // up to date; only the event still has to be raised.
+            if (!control._updating)
+                control.SetDigits(newValue.HasValue
+                    ? $"{newValue.Value.Hour:D2}{newValue.Value.Minute:D2}"
+                    : string.Empty);
 
             control.RaiseEvent(new RoutedPropertyChangedEventArgs<EodtCore.EndOfDayTime?>(
                 oldValue, newValue, TimeValueChangedEvent));
