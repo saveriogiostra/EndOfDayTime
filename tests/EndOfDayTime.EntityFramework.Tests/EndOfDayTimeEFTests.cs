@@ -15,6 +15,10 @@ namespace EndOfDayTime.EntityFramework.Tests
         public string Name { get; set; } = string.Empty;
         public EodtCore.EndOfDayTime Start { get; set; }
         public EodtCore.EndOfDayTime End { get; set; }
+        public EodtCore.EndOfDayTime? Break { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public EodtCore.EndOfDayTime Ignored { get; set; }
     }
 
     // ── DbContext using HasEndOfDayTimeConverter (per-property) ──────────
@@ -32,6 +36,7 @@ namespace EndOfDayTime.EntityFramework.Tests
             {
                 entity.Property(s => s.Start).HasEndOfDayTimeConverter();
                 entity.Property(s => s.End).HasEndOfDayTimeConverter();
+                entity.Property(s => s.Break).HasEndOfDayTimeConverter();
             });
         }
     }
@@ -51,29 +56,44 @@ namespace EndOfDayTime.EntityFramework.Tests
         }
     }
 
+    // ── DbContext using UseEndOfDayTime (conventions) ────────────────────
+
+    public class ShiftDbContextConvention : DbContext
+    {
+        public DbSet<WorkShift> Shifts { get; set; } = null!;
+
+        public ShiftDbContextConvention(DbContextOptions<ShiftDbContextConvention> options)
+            : base(options) { }
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.UseEndOfDayTime();
+        }
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────
 
     public static class TestDbContextFactory
     {
-        public static ShiftDbContextManual CreateManual()
+        // A relational provider is required here: the in-memory provider accepts
+        // unmapped CLR types and would hide mapping errors.
+        private static TContext Create<TContext>(Func<DbContextOptions<TContext>, TContext> factory)
+            where TContext : DbContext
         {
-            var options = new DbContextOptionsBuilder<ShiftDbContextManual>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            var options = new DbContextOptionsBuilder<TContext>()
+                .UseSqlite("DataSource=:memory:")
                 .Options;
-            var ctx = new ShiftDbContextManual(options);
+            var ctx = factory(options);
+            ctx.Database.OpenConnection();
             ctx.Database.EnsureCreated();
             return ctx;
         }
 
-        public static ShiftDbContextAuto CreateAuto()
-        {
-            var options = new DbContextOptionsBuilder<ShiftDbContextAuto>()
-                .UseInMemoryDatabase(Guid.NewGuid().ToString())
-                .Options;
-            var ctx = new ShiftDbContextAuto(options);
-            ctx.Database.EnsureCreated();
-            return ctx;
-        }
+        public static ShiftDbContextManual CreateManual() => Create<ShiftDbContextManual>(o => new(o));
+
+        public static ShiftDbContextAuto CreateAuto() => Create<ShiftDbContextAuto>(o => new(o));
+
+        public static ShiftDbContextConvention CreateConvention() => Create<ShiftDbContextConvention>(o => new(o));
     }
 
     // ── Tests ────────────────────────────────────────────────────────────
@@ -187,6 +207,79 @@ namespace EndOfDayTime.EntityFramework.Tests
 
             var loaded = ctx.Shifts.Single();
             Assert.True(loaded.End.IsEndOfDay);
+        }
+
+        [Fact]
+        public void Auto_NullableProperty_RoundTrips()
+        {
+            using var ctx = TestDbContextFactory.CreateAuto();
+
+            ctx.Shifts.AddRange(
+                new WorkShift { Name = "A", Break = new EodtCore.EndOfDayTime(0, 0) },
+                new WorkShift { Name = "B", Break = null });
+            ctx.SaveChanges();
+            ctx.ChangeTracker.Clear();
+
+            var shifts = ctx.Shifts.OrderBy(s => s.Name).ToList();
+            Assert.Equal(new EodtCore.EndOfDayTime(0, 0), shifts[0].Break);
+            Assert.Null(shifts[1].Break);
+        }
+
+        [Fact]
+        public void Auto_NotMappedProperty_StaysUnmapped()
+        {
+            using var ctx = TestDbContextFactory.CreateAuto();
+            var entityType = ctx.Model.FindEntityType(typeof(WorkShift))!;
+            Assert.Null(entityType.FindProperty(nameof(WorkShift.Ignored)));
+        }
+
+        // ── Conventions (UseEndOfDayTime) ────────────────────────────────
+
+        [Fact]
+        public void Convention_SaveAndReload_PreservesTime()
+        {
+            using var ctx = TestDbContextFactory.CreateConvention();
+
+            ctx.Shifts.Add(new WorkShift
+            {
+                Name = "Late",
+                Start = new EodtCore.EndOfDayTime(0, 0),
+                End = EodtCore.EndOfDayTime.EndOfDay,
+                Break = new EodtCore.EndOfDayTime(12, 30)
+            });
+            ctx.SaveChanges();
+            ctx.ChangeTracker.Clear();
+
+            var loaded = ctx.Shifts.Single();
+            Assert.Equal(new EodtCore.EndOfDayTime(0, 0), loaded.Start);
+            Assert.True(loaded.End.IsEndOfDay);
+            Assert.Equal(new EodtCore.EndOfDayTime(12, 30), loaded.Break);
+        }
+
+        [Fact]
+        public void Convention_NullableProperty_StoresNull()
+        {
+            using var ctx = TestDbContextFactory.CreateConvention();
+
+            ctx.Shifts.Add(new WorkShift { Name = "NoBreak" });
+            ctx.SaveChanges();
+            ctx.ChangeTracker.Clear();
+
+            Assert.Null(ctx.Shifts.Single().Break);
+        }
+
+        [Fact]
+        public void Convention_QueryByEquality_IsTranslated()
+        {
+            using var ctx = TestDbContextFactory.CreateConvention();
+
+            ctx.Shifts.AddRange(
+                new WorkShift { Name = "A", End = new EodtCore.EndOfDayTime(17, 0) },
+                new WorkShift { Name = "B", End = EodtCore.EndOfDayTime.EndOfDay });
+            ctx.SaveChanges();
+
+            var eod = EodtCore.EndOfDayTime.EndOfDay;
+            Assert.Equal("B", ctx.Shifts.Single(s => s.End == eod).Name);
         }
 
         // ── ValueConverter directly ──────────────────────────────────────

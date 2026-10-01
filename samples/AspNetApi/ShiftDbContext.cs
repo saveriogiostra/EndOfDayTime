@@ -17,9 +17,9 @@ namespace EndOfDayTime.Sample.AspNetApi
         public ShiftDbContext(DbContextOptions<ShiftDbContext> options) : base(options) { }
         public DbSet<WorkShift> Shifts { get; set; } = null!;
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
-            modelBuilder.ApplyEndOfDayTimeConverter();
+            configurationBuilder.UseEndOfDayTime();
         }
     }
 }
