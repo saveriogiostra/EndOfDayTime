@@ -112,6 +112,69 @@ namespace EndOfDayTime.Wpf.Tests
         }
 
         [Fact]
+        public void PartialText_SetsTimeValueToNull()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                control.Text = "12:30";
+                control.Text = "12:3";
+                Assert.Null(control.TimeValue);
+                Assert.True(control.IsValid); // still typing — not an error yet
+            });
+        }
+
+        [Fact]
+        public void InvalidText_SetsTimeValueToNull()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                control.Text = "12:30";
+                control.Text = "25:00";
+                Assert.Null(control.TimeValue);
+                Assert.False(control.IsValid);
+            });
+        }
+
+        [Fact]
+        public void IsValid_RecoversAfterInvalidInput()
+        {
+            RunOnSta(() =>
+            {
+                var control = new EndOfDayTimeTextBox();
+                control.Text = "25:00";
+                Assert.False(control.IsValid);
+                control.Text = "12:3";
+                Assert.True(control.IsValid);
+            });
+        }
+
+        [Fact]
+        public void UserInput_UpdatesTwoWayBoundSource_AndKeepsBinding()
+        {
+            RunOnSta(() =>
+            {
+                var source = new BoundSource();
+                var control = new EndOfDayTimeTextBox();
+                control.SetBinding(EndOfDayTimeTextBox.TimeValueProperty,
+                    new System.Windows.Data.Binding(nameof(BoundSource.Time)) { Source = source });
+
+                control.Text = "09:30";
+                Assert.Equal(new EodtCore.EndOfDayTime(9, 30), source.Time);
+
+                control.Text = "09:3";
+                Assert.Null(source.Time);
+                Assert.NotNull(control.GetBindingExpression(EndOfDayTimeTextBox.TimeValueProperty));
+            });
+        }
+
+        private class BoundSource
+        {
+            public EodtCore.EndOfDayTime? Time { get; set; }
+        }
+
+        [Fact]
         public void Converter_Midnight_ConvertsToText()
         {
             var converter = new EndOfDayTimeConverter();

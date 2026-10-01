@@ -126,10 +126,13 @@ namespace EndOfDayTime.WinForms
 
             if (_digits.Length == 4)
                 Validate();
-            else if (_digits.Length > 0)
-                SetValidationState(true, string.Empty);
             else
+            {
+                // Incomplete or empty input has no value; don't keep the previous one.
+                if (_digits.Length > 0)
+                    SetValidationState(true, string.Empty);
                 SetTimeValueCore(null);
+            }
         }
 
         private void SetTimeValueCore(EodtCore.EndOfDayTime? value)
@@ -267,12 +270,14 @@ namespace EndOfDayTime.WinForms
         {
             if (string.IsNullOrWhiteSpace(Text))
             {
+                SetTimeValueCore(null);
                 SetValidationState(false, "Time is required.");
                 return false;
             }
 
             if (!EodtCore.EndOfDayTime.TryParse(Text, out var parsed))
             {
+                SetTimeValueCore(null);
                 SetValidationState(false, "Enter a valid time (00:00–24:00).");
                 return false;
             }

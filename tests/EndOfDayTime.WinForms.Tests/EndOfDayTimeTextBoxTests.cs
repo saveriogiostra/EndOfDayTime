@@ -79,6 +79,49 @@ namespace EndOfDayTime.WinForms.Tests
         }
 
         [Fact]
+        public void PartialText_SetsTimeValueToNull()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            control.Text = "12:3";
+            Assert.Null(control.TimeValue);
+            Assert.True(control.IsValid); // still typing — not an error yet
+        }
+
+        [Fact]
+        public void InvalidText_SetsTimeValueToNull()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            control.Text = "25:00";
+            Assert.Null(control.TimeValue);
+            Assert.False(control.IsValid);
+        }
+
+        [Fact]
+        public void PartialText_ThenCompleted_RestoresTimeValue()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            var received = new List<EodtCore.EndOfDayTime?>();
+            control.TimeValueChanged += (s, e) => received.Add(e);
+            control.Text = "12:3";
+            control.Text = "12:35";
+            Assert.Equal(new EodtCore.EndOfDayTime?[] { null, new EodtCore.EndOfDayTime(12, 35) }, received);
+        }
+
+        [Fact]
+        public void Validate_UnchangedValue_DoesNotFireEvent()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            int count = 0;
+            control.TimeValueChanged += (s, e) => count++;
+            control.Validate();
+            Assert.Equal(0, count);
+        }
+
+        [Fact]
         public void SetTimeValue_FiresEventOnce()
         {
             var control = new EndOfDayTimeTextBox();

@@ -136,14 +136,23 @@ namespace EndOfDayTime.Wpf
 
             if (_digits.Length == 4)
                 Validate();
-            else if (_digits.Length > 0)
-                SetValidationState(true, null);
-            else if (TimeValue.HasValue)
+            else
             {
-                _updating = true;
-                TimeValue = null;
-                _updating = false;
+                // Incomplete or empty input has no value; don't keep the previous one.
+                SetTimeValueFromInput(null);
+                if (_digits.Length > 0)
+                    SetValidationState(true, null);
             }
+        }
+
+        // Updates TimeValue from the user's input without re-rendering the text.
+        // SetCurrentValue keeps any binding on TimeValue intact.
+        private void SetTimeValueFromInput(EodtCore.EndOfDayTime? value)
+        {
+            if (TimeValue == value) return;
+            _updating = true;
+            SetCurrentValue(TimeValueProperty, value);
+            _updating = false;
         }
 
         // ── Position mapping ──────────────────────────────────────────────
@@ -260,28 +269,27 @@ namespace EndOfDayTime.Wpf
         {
             if (string.IsNullOrWhiteSpace(Text))
             {
-                _isValid = false;
+                SetTimeValueFromInput(null);
                 SetValidationState(false, "Time is required.");
                 return false;
             }
 
             if (!EodtCore.EndOfDayTime.TryParse(Text, out var parsed))
             {
-                _isValid = false;
+                SetTimeValueFromInput(null);
                 SetValidationState(false, "Enter a valid time (00:00–24:00).");
                 return false;
             }
 
-            _isValid = true;
             SetValidationState(true, null);
-            _updating = true;
-            TimeValue = parsed;
-            _updating = false;
+            SetTimeValueFromInput(parsed);
             return true;
         }
 
         private void SetValidationState(bool isValid, string? message)
         {
+            _isValid = isValid;
+
             var bindingExpression =
                 GetBindingExpression(TimeValueProperty) ??
                 (System.Windows.Data.BindingExpressionBase?)GetBindingExpression(TextProperty);
