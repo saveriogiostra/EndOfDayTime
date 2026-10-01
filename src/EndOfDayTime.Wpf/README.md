@@ -50,7 +50,7 @@ myTimeBox.TimeValueChanged += (s, e) =>
 ```csharp
 if (myTimeBox.Validate())
 {
-    var value = myTimeBox.TimeValue; // guaranteed valid EndOfDayTime
+    var value = myTimeBox.TimeValue!.Value; // guaranteed valid EndOfDayTime
 }
 else
 {
@@ -62,6 +62,7 @@ else
 
 - Validates on lost focus and on Enter key
 - `TimeValue` dependency property supports two-way binding
+- `TimeValue` is an `EndOfDayTime?` — `null` means the field is empty, `00:00` is a real value; bind it to an `EndOfDayTime?` property to allow an empty field
 - `TimeValueChanged` is a bubbling routed event
 - `MaxLength` is set to 5 automatically (`HH:mm`)
 

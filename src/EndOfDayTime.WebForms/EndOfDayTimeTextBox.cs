@@ -15,19 +15,19 @@ namespace EndOfDayTime.WebForms
     {
         // ── Properties ───────────────────────────────────────────────────
 
-        /// <summary>The current EndOfDayTime value.</summary>
-        public EodtCore.EndOfDayTime TimeValue
+        /// <summary>The current EndOfDayTime value, or null when the field is empty or invalid.</summary>
+        public EodtCore.EndOfDayTime? TimeValue
         {
             get
             {
                 var s = ViewState["TimeValue"] as string;
                 if (s != null && EodtCore.EndOfDayTime.TryParse(s, out var t))
                     return t;
-                return default;
+                return null;
             }
             set
             {
-                ViewState["TimeValue"] = value == default ? string.Empty : value.ToString();
+                ViewState["TimeValue"] = value.HasValue ? value.Value.ToString() : string.Empty;
             }
         }
 
@@ -57,7 +57,7 @@ namespace EndOfDayTime.WebForms
         /// <inheritdoc/>
         protected override void Render(HtmlTextWriter writer)
         {
-            var value = TimeValue == default ? string.Empty : TimeValue.ToString();
+            var value = TimeValue.HasValue ? TimeValue.Value.ToString() : string.Empty;
             var cssClass = string.IsNullOrEmpty(InputCssClass) ? string.Empty : $" class=\"{InputCssClass}\"";
 
             writer.Write(
@@ -78,7 +78,7 @@ namespace EndOfDayTime.WebForms
         public bool LoadPostData(string postDataKey, System.Collections.Specialized.NameValueCollection postCollection)
         {
             var posted = postCollection[postDataKey] ?? string.Empty;
-            var current = TimeValue == default ? string.Empty : TimeValue.ToString();
+            var current = TimeValue.HasValue ? TimeValue.Value.ToString() : string.Empty;
 
             if (posted == current) return false;
 

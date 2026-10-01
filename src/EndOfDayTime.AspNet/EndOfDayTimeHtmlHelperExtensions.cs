@@ -13,25 +13,28 @@ namespace EndOfDayTime.AspNet
     {
         /// <summary>
         /// Renders an EndOfDayTime input field for the specified model expression.
+        /// The property may be an EndOfDayTime or a nullable EndOfDayTime; null renders an empty field.
         /// </summary>
-        public static IHtmlContent EndOfDayTimeInputFor<TModel>(
+        public static IHtmlContent EndOfDayTimeInputFor<TModel, TResult>(
             this IHtmlHelper<TModel> html,
-            Expression<Func<TModel, EodtCore.EndOfDayTime>> expression,
+            Expression<Func<TModel, TResult>> expression,
             string? cssClass = null)
         {
             var name  = html.NameFor(expression);
             var value = html.ValueFor(expression);
-            EodtCore.EndOfDayTime.TryParse(value, out var parsed);
-            return BuildEndOfDayTimeInput(name, parsed, cssClass);
+            return BuildEndOfDayTimeInput(
+                name,
+                EodtCore.EndOfDayTime.TryParse(value, out var parsed) ? parsed : null,
+                cssClass);
         }
 
         /// <summary>
-        /// Renders an EndOfDayTime input field by name.
+        /// Renders an EndOfDayTime input field by name. A null value renders an empty field.
         /// </summary>
         public static IHtmlContent EndOfDayTimeInput(
             this IHtmlHelper html,
             string name,
-            EodtCore.EndOfDayTime value = default,
+            EodtCore.EndOfDayTime? value = null,
             string? cssClass = null)
         {
             return BuildEndOfDayTimeInput(name, value, cssClass);
@@ -42,7 +45,7 @@ namespace EndOfDayTime.AspNet
         /// </summary>
         public static IHtmlContent BuildEndOfDayTimeInput(
             string name,
-            EodtCore.EndOfDayTime value = default,
+            EodtCore.EndOfDayTime? value = null,
             string? cssClass = null)
         {
             var input = new TagBuilder("input");
@@ -55,8 +58,8 @@ namespace EndOfDayTime.AspNet
             input.Attributes["autocomplete"]    = "off";
             input.Attributes["style"]           = "width:70px; text-align:center; font-family:Consolas;";
 
-            if (value != default)
-                input.Attributes["value"] = value.ToString();
+            if (value.HasValue)
+                input.Attributes["value"] = value.Value.ToString();
 
             if (!string.IsNullOrEmpty(cssClass))
                 input.Attributes["class"] = cssClass;

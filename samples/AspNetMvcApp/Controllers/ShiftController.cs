@@ -15,14 +15,21 @@ namespace EndOfDayTime.Sample.AspNet.Controllers
         [HttpPost]
         public IActionResult Index(ShiftViewModel model)
         {
-            if (model.End <= model.Start)
+            if (model.Start is null)
+                ModelState.AddModelError("Start", "Start time is required.");
+            if (model.End is null)
+                ModelState.AddModelError("End", "End time is required.");
+            if (model.Start is not { } start || model.End is not { } end)
+                return View(model);
+
+            if (end <= start)
             {
                 ModelState.AddModelError("End", "End time must be after start time.");
                 return View(model);
             }
 
-            var duration = model.End - model.Start;
-            model.Result = $"Shift saved! Start: {model.Start} End: {model.End} Duration: {(int)duration.TotalHours}h {duration.Minutes:D2}m";
+            var duration = end - start;
+            model.Result = $"Shift saved! Start: {start} End: {end} Duration: {(int)duration.TotalHours}h {duration.Minutes:D2}m";
             return View(model);
         }
     }

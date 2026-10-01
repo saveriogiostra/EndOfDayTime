@@ -10,10 +10,10 @@ namespace EndOfDayTime.WebForms.Tests
         // ── TimeValue property ───────────────────────────────────────────
 
         [Fact]
-        public void TimeValue_Default_IsDefault()
+        public void TimeValue_Default_IsNull()
         {
             var control = new EndOfDayTimeTextBox();
-            Assert.Equal(default(EodtCore.EndOfDayTime), control.TimeValue);
+            Assert.Null(control.TimeValue);
         }
 
         [Fact]
@@ -29,16 +29,24 @@ namespace EndOfDayTime.WebForms.Tests
         {
             var control = new EndOfDayTimeTextBox();
             control.TimeValue = EodtCore.EndOfDayTime.EndOfDay;
-            Assert.True(control.TimeValue.IsEndOfDay);
+            Assert.True(control.TimeValue.Value.IsEndOfDay);
         }
 
         [Fact]
-        public void TimeValue_SetDefault_ReturnsDefault()
+        public void TimeValue_SetNull_ReturnsNull()
         {
             var control = new EndOfDayTimeTextBox();
             control.TimeValue = new EodtCore.EndOfDayTime(9, 0);
-            control.TimeValue = default;
-            Assert.Equal(default(EodtCore.EndOfDayTime), control.TimeValue);
+            control.TimeValue = null;
+            Assert.Null(control.TimeValue);
+        }
+
+        [Fact]
+        public void TimeValue_SetMidnight_ReturnsMidnight()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.TimeValue = new EodtCore.EndOfDayTime(0, 0);
+            Assert.Equal(new EodtCore.EndOfDayTime(0, 0), control.TimeValue);
         }
 
         // ── IsValid ──────────────────────────────────────────────────────

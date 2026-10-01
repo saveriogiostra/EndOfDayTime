@@ -52,6 +52,8 @@ public class ShiftDto
 
 Model binding works automatically via the `TypeConverter` included in `EndOfDayTime.Core`.
 
+Use `EndOfDayTime?` for optional fields: `null` renders an empty input, while `00:00` is a real value and is rendered as `00:00`.
+
 ## Behaviour
 
 - Accepts only digits — colon inserted automatically after second digit

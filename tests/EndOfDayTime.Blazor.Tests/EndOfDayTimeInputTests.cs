@@ -10,6 +10,11 @@ namespace EndOfDayTime.Blazor.Tests
         public EodtCore.EndOfDayTime End { get; set; }
     }
 
+    public class NullableTestModel
+    {
+        public EodtCore.EndOfDayTime? End { get; set; }
+    }
+
     public class EndOfDayTimeInputTests : TestContext
     {
         private void SetupJSInterop()
@@ -17,11 +22,11 @@ namespace EndOfDayTime.Blazor.Tests
             JSInterop.Mode = JSRuntimeMode.Loose;
         }
 
-        private IRenderedComponent<EndOfDayTimeInput> RenderInput(EodtCore.EndOfDayTime value)
+        private IRenderedComponent<EndOfDayTimeInput<EodtCore.EndOfDayTime>> RenderInput(EodtCore.EndOfDayTime value)
         {
             SetupJSInterop();
             var model = new TestModel { End = value };
-            return RenderComponent<EndOfDayTimeInput>(parameters => parameters
+            return RenderComponent<EndOfDayTimeInput<EodtCore.EndOfDayTime>>(parameters => parameters
                 .Add(p => p.Value, model.End)
                 .Add(p => p.ValueChanged, v => model.End = v)
                 .Add(p => p.ValueExpression, () => model.End));
@@ -52,10 +57,49 @@ namespace EndOfDayTime.Blazor.Tests
         }
 
         [Fact]
-        public void Renders_DefaultValue_AsEmpty()
+        public void Renders_Midnight_AsString()
         {
-            var cut = RenderInput(default);
-            Assert.NotNull(cut.Find("input"));
+            RenderInput(new EodtCore.EndOfDayTime(0, 0));
+            Assert.Contains(JSInterop.Invocations, i =>
+                i.Identifier == "setValue" && Equals(i.Arguments[0], "00:00"));
+        }
+
+        [Fact]
+        public void Renders_NullValue_AsEmpty()
+        {
+            SetupJSInterop();
+            var model = new NullableTestModel();
+            RenderComponent<EndOfDayTimeInput<EodtCore.EndOfDayTime?>>(parameters => parameters
+                .Add(p => p.Value, model.End)
+                .Add(p => p.ValueChanged, v => model.End = v)
+                .Add(p => p.ValueExpression, () => model.End));
+            Assert.DoesNotContain(JSInterop.Invocations, i => i.Identifier == "setValue");
+        }
+
+        [Fact]
+        public void Nullable_ClearedInput_SetsNull()
+        {
+            SetupJSInterop();
+            var model = new NullableTestModel { End = new EodtCore.EndOfDayTime(9, 0) };
+            var cut = RenderComponent<EndOfDayTimeInput<EodtCore.EndOfDayTime?>>(parameters => parameters
+                .Add(p => p.Value, model.End)
+                .Add(p => p.ValueChanged, v => model.End = v)
+                .Add(p => p.ValueExpression, () => model.End));
+            cut.InvokeAsync(() => cut.Instance.OnDigitsChanged(string.Empty));
+            Assert.Null(model.End);
+        }
+
+        [Fact]
+        public void Nullable_Midnight_SetsMidnight()
+        {
+            SetupJSInterop();
+            var model = new NullableTestModel();
+            var cut = RenderComponent<EndOfDayTimeInput<EodtCore.EndOfDayTime?>>(parameters => parameters
+                .Add(p => p.Value, model.End)
+                .Add(p => p.ValueChanged, v => model.End = v)
+                .Add(p => p.ValueExpression, () => model.End));
+            cut.InvokeAsync(() => cut.Instance.OnDigitsChanged("00:00"));
+            Assert.Equal(new EodtCore.EndOfDayTime(0, 0), model.End);
         }
 
         // ── Validation error on blur ─────────────────────────────────────

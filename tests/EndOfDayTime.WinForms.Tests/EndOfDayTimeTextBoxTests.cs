@@ -13,10 +13,10 @@ namespace EndOfDayTime.WinForms.Tests
         // ── Construction ─────────────────────────────────────────────────
 
         [Fact]
-        public void Constructor_DefaultTimeValue_IsDefault()
+        public void Constructor_DefaultTimeValue_IsNull()
         {
             var control = new EndOfDayTimeTextBox();
-            Assert.Equal(default(EodtCore.EndOfDayTime), control.TimeValue);
+            Assert.Null(control.TimeValue);
         }
 
         [Fact]
@@ -52,12 +52,83 @@ namespace EndOfDayTime.WinForms.Tests
         }
 
         [Fact]
-        public void SetTimeValue_Default_TextIsEmpty()
+        public void SetTimeValue_Null_TextIsEmpty()
         {
             var control = new EndOfDayTimeTextBox();
             control.TimeValue = new EodtCore.EndOfDayTime(9, 0);
-            control.TimeValue = default;
+            control.TimeValue = null;
             Assert.Equal(string.Empty, control.Text);
+        }
+
+        [Fact]
+        public void SetTimeValue_Midnight_UpdatesText()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.TimeValue = new EodtCore.EndOfDayTime(0, 0);
+            Assert.Equal("00:00", control.Text);
+            Assert.Equal(new EodtCore.EndOfDayTime(0, 0), control.TimeValue);
+        }
+
+        [Fact]
+        public void ClearText_SetsTimeValueToNull()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.TimeValue = new EodtCore.EndOfDayTime(9, 0);
+            control.Text = string.Empty;
+            Assert.Null(control.TimeValue);
+        }
+
+        [Fact]
+        public void PartialText_SetsTimeValueToNull()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            control.Text = "12:3";
+            Assert.Null(control.TimeValue);
+            Assert.True(control.IsValid); // still typing — not an error yet
+        }
+
+        [Fact]
+        public void InvalidText_SetsTimeValueToNull()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            control.Text = "25:00";
+            Assert.Null(control.TimeValue);
+            Assert.False(control.IsValid);
+        }
+
+        [Fact]
+        public void PartialText_ThenCompleted_RestoresTimeValue()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            var received = new List<EodtCore.EndOfDayTime?>();
+            control.TimeValueChanged += (s, e) => received.Add(e);
+            control.Text = "12:3";
+            control.Text = "12:35";
+            Assert.Equal(new EodtCore.EndOfDayTime?[] { null, new EodtCore.EndOfDayTime(12, 35) }, received);
+        }
+
+        [Fact]
+        public void Validate_UnchangedValue_DoesNotFireEvent()
+        {
+            var control = new EndOfDayTimeTextBox();
+            control.Text = "12:30";
+            int count = 0;
+            control.TimeValueChanged += (s, e) => count++;
+            control.Validate();
+            Assert.Equal(0, count);
+        }
+
+        [Fact]
+        public void SetTimeValue_FiresEventOnce()
+        {
+            var control = new EndOfDayTimeTextBox();
+            int count = 0;
+            control.TimeValueChanged += (s, e) => count++;
+            control.TimeValue = new EodtCore.EndOfDayTime(0, 0);
+            Assert.Equal(1, count);
         }
 
         [Fact]

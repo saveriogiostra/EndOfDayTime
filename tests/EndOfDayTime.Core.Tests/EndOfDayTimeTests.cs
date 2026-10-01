@@ -222,6 +222,97 @@ namespace EndOfDayTime.Core.Tests
             Assert.Equal(original, deserialized);
         }
 
+        private class JsonShift
+        {
+            public EndOfDayTime Start { get; set; }
+            public EndOfDayTime? End { get; set; }
+        }
+
+        [Fact]
+        public void Json_WithoutOptions_SerializesAsString()
+        {
+            var json = JsonSerializer.Serialize(new JsonShift { Start = new EndOfDayTime(0, 0), End = EndOfDayTime.EndOfDay });
+            Assert.Equal("{\"Start\":\"00:00\",\"End\":\"24:00\"}", json);
+        }
+
+        [Fact]
+        public void Json_WithoutOptions_DeserializesFromString()
+        {
+            var shift = JsonSerializer.Deserialize<JsonShift>("{\"Start\":\"09:30\",\"End\":\"24:00\"}")!;
+            Assert.Equal(new EndOfDayTime(9, 30), shift.Start);
+            Assert.Equal(EndOfDayTime.EndOfDay, shift.End);
+        }
+
+        [Fact]
+        public void Json_Nullable_RoundTripsNull()
+        {
+            var json = JsonSerializer.Serialize(new JsonShift { Start = new EndOfDayTime(9, 0) });
+            Assert.Equal("{\"Start\":\"09:00\",\"End\":null}", json);
+            Assert.Null(JsonSerializer.Deserialize<JsonShift>(json)!.End);
+        }
+
+        [Theory]
+        [InlineData("930")]
+        [InlineData("\"25:00\"")]
+        [InlineData("true")]
+        public void Json_InvalidValue_ThrowsJsonException(string json)
+        {
+            Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<EndOfDayTime>(json));
+        }
+
+        [Theory]
+        [InlineData("+5:30")]
+        [InlineData("-0:00")]
+        [InlineData("05:+9")]
+        [InlineData("1 :30")]
+        [InlineData("05: 9")]
+        [InlineData("٠٩:٣٠")]
+        [InlineData("09:30:00")]
+        [InlineData("09.30")]
+        public void TryParse_NonDigitInput_ReturnsFalse(string input)
+        {
+            Assert.False(EndOfDayTime.TryParse(input, out _));
+        }
+
+        [Theory]
+        [InlineData(" 09:30 ", 9, 30)]
+        [InlineData("00:00", 0, 0)]
+        [InlineData("24:00", 24, 0)]
+        public void TryParse_ValidInput_ReturnsTrue(string input, int hour, int minute)
+        {
+            Assert.True(EndOfDayTime.TryParse(input, out var result));
+            Assert.Equal(new EndOfDayTime(hour, minute), result);
+        }
+
+        // ── TimeOnly conversion ──────────────────────────────────────────
+
+        [Fact]
+        public void ToTimeOnly_ReturnsCorrectValue()
+        {
+            Assert.Equal(new TimeOnly(9, 30), new EndOfDayTime(9, 30).ToTimeOnly());
+            Assert.Equal(new TimeOnly(0, 0), (TimeOnly)new EndOfDayTime(0, 0));
+        }
+
+        [Fact]
+        public void ToTimeOnly_EndOfDay_Throws()
+        {
+            Assert.Throws<InvalidOperationException>(() => EndOfDayTime.EndOfDay.ToTimeOnly());
+            Assert.Throws<InvalidOperationException>(() => (TimeOnly)EndOfDayTime.EndOfDay);
+        }
+
+        [Fact]
+        public void FromTimeOnly_ReturnsCorrectValue()
+        {
+            Assert.Equal(new EndOfDayTime(17, 45), EndOfDayTime.FromTimeOnly(new TimeOnly(17, 45)));
+            Assert.Equal(new EndOfDayTime(17, 45), (EndOfDayTime)new TimeOnly(17, 45));
+        }
+
+        [Fact]
+        public void FromTimeOnly_DiscardsSeconds()
+        {
+            Assert.Equal(new EndOfDayTime(23, 59), EndOfDayTime.FromTimeOnly(new TimeOnly(23, 59, 59, 999)));
+        }
+
         // ── TimeSpan conversion ──────────────────────────────────────────
 
         [Fact]

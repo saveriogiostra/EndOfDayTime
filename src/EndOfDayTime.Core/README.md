@@ -47,19 +47,29 @@ bool isLast = end > start;        // true
 bool isEod  = end.IsEndOfDay;     // true
 ```
 
+### TimeOnly conversion (.NET 8+)
+
+```csharp
+TimeOnly time = new EndOfDayTime(9, 30).ToTimeOnly();          // 09:30
+var      t    = EndOfDayTime.FromTimeOnly(new TimeOnly(17, 45)); // 17:45, seconds are discarded
+
+EndOfDayTime.EndOfDay.ToTimeOnly(); // throws — 24:00 has no TimeOnly equivalent
+```
+
+Both conversions are also available as explicit casts.
+
 ### JSON serialization (System.Text.Json)
 
 ```csharp
-var options = new JsonSerializerOptions();
-options.Converters.Add(new EndOfDayTimeJsonConverter());
-
-string json    = JsonSerializer.Serialize(new EndOfDayTime(24, 0), options);  // "24:00"
-var    parsed  = JsonSerializer.Deserialize<EndOfDayTime>("\"09:30\"", options);
+string json    = JsonSerializer.Serialize(new EndOfDayTime(24, 0));  // "24:00"
+var    parsed  = JsonSerializer.Deserialize<EndOfDayTime>("\"09:30\"");
 ```
+
+The converter is applied by attribute — no `JsonSerializerOptions` setup is needed. `EndOfDayTime?` properties serialize as `null`.
 
 ### WPF / WinForms / ASP.NET model binding
 
-The `TypeConverter` is registered automatically via `[TypeConverter]` attribute — no configuration needed:
+The `TypeConverter` and the JSON converter are registered automatically via attributes — no configuration needed:
 
 ```xml
 <!-- WPF -->

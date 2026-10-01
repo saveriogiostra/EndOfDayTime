@@ -117,6 +117,37 @@ namespace EndOfDayTime.AspNet.Tests
             Assert.Equal("my-input", output.Attributes["class"].Value.ToString());
         }
 
+        private static ModelExpression CreateExpression<T>(string name, T value)
+        {
+            var provider = new EmptyModelMetadataProvider();
+            var explorer = new ModelExplorer(provider, provider.GetMetadataForType(typeof(T)), value);
+            return new ModelExpression(name, explorer);
+        }
+
+        [Fact]
+        public void Process_ForMidnight_SetsValue()
+        {
+            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>())
+            {
+                For = CreateExpression("Start", new EodtCore.EndOfDayTime(0, 0))
+            };
+            var output = CreateOutput();
+            helper.Process(CreateContext(), output);
+            Assert.Equal("00:00", output.Attributes["value"].Value.ToString());
+        }
+
+        [Fact]
+        public void Process_ForNull_NoValueAttribute()
+        {
+            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>())
+            {
+                For = CreateExpression<EodtCore.EndOfDayTime?>("Start", null)
+            };
+            var output = CreateOutput();
+            helper.Process(CreateContext(), output);
+            Assert.False(output.Attributes.ContainsName("value"));
+        }
+
         [Fact]
         public void Process_WithoutCssClass_NoClassAttribute()
         {

@@ -6,6 +6,7 @@ namespace EndOfDayTime.Core
     /// Represents a time of day in the range 00:00–24:00, where 24:00 denotes end-of-day midnight.
     /// </summary>
     [System.ComponentModel.TypeConverter(typeof(EndOfDayTimeTypeConverter))]
+    [System.Text.Json.Serialization.JsonConverter(typeof(EndOfDayTimeJsonConverter))]
     public readonly struct EndOfDayTime : IEquatable<EndOfDayTime>, IComparable<EndOfDayTime>
     {
         private readonly short _minutes;
@@ -74,17 +75,22 @@ namespace EndOfDayTime.Core
         {
             result = default;
             if (string.IsNullOrWhiteSpace(value)) return false;
-            var parts = value.Trim().Split(':');
-            if (parts.Length != 2) return false;
-            if (parts[0].Length != 2 || parts[1].Length != 2) return false;
-            if (!int.TryParse(parts[0], out int hour)) return false;
-            if (!int.TryParse(parts[1], out int minute)) return false;
-            if (hour < 0 || hour > 24) return false;
-            if (minute < 0 || minute > 59) return false;
+            var s = value.Trim();
+            // Exactly "HH:mm" with ASCII digits — int.TryParse would also accept
+            // signs, inner whitespace and culture-specific input.
+            if (s.Length != 5 || s[2] != ':') return false;
+            if (!IsAsciiDigit(s[0]) || !IsAsciiDigit(s[1]) ||
+                !IsAsciiDigit(s[3]) || !IsAsciiDigit(s[4])) return false;
+            int hour = (s[0] - '0') * 10 + (s[1] - '0');
+            int minute = (s[3] - '0') * 10 + (s[4] - '0');
+            if (hour > 24) return false;
+            if (minute > 59) return false;
             if (hour == 24 && minute != 0) return false;
             result = new EndOfDayTime((short)(hour * 60 + minute));
             return true;
         }
+
+        private static bool IsAsciiDigit(char c) => c >= '0' && c <= '9';
 
         /// <summary>Returns the time formatted as HH:mm.</summary>
         public override string ToString() => $"{Hour:D2}:{Minute:D2}";
@@ -137,8 +143,16 @@ namespace EndOfDayTime.Core
         /// <summary>Explicit conversion to TimeOnly. Throws if value is 24:00.</summary>
         public static explicit operator TimeOnly(EndOfDayTime t) => t.ToTimeOnly();
 
-        /// <summary>Implicit conversion from TimeOnly.</summary>
-        public static implicit operator EndOfDayTime(TimeOnly t) => new EndOfDayTime(t.Hour, t.Minute);
+        /// <summary>
+        /// Creates an EndOfDayTime from a TimeOnly. Seconds and smaller units are discarded.
+        /// </summary>
+        public static EndOfDayTime FromTimeOnly(TimeOnly time) => new EndOfDayTime(time.Hour, time.Minute);
+
+        /// <summary>
+        /// Explicit conversion from TimeOnly. Seconds and smaller units are discarded,
+        /// which is why the conversion is not implicit.
+        /// </summary>
+        public static explicit operator EndOfDayTime(TimeOnly t) => FromTimeOnly(t);
 #endif
 
         /// <summary>Converts to TimeSpan.</summary>

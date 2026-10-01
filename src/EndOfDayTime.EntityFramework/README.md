@@ -23,16 +23,22 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 }
 ```
 
-### Automatic configuration (all properties)
+### Automatic configuration (all properties) — recommended
 
 ```csharp
-protected override void OnModelCreating(ModelBuilder modelBuilder)
+protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
 {
-    modelBuilder.ApplyEndOfDayTimeConverter();
+    configurationBuilder.UseEndOfDayTime();
 }
 ```
 
-This scans all entities and applies the converter to every `EndOfDayTime` property automatically.
+This applies the converter to every `EndOfDayTime` and `EndOfDayTime?` property in the model.
+
+Alternatively, call `modelBuilder.ApplyEndOfDayTimeConverter()` at the **end** of `OnModelCreating`. It only covers entity types already in the model at that point.
+
+### Nullable properties
+
+`EndOfDayTime?` properties are stored as a nullable `smallint`. `00:00` is stored as `0`, not as `NULL`.
 
 ### Example model
 

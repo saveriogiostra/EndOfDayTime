@@ -1,7 +1,8 @@
 @using System.Diagnostics.CodeAnalysis
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.JSInterop
-@inherits InputBase<EodtCore.EndOfDayTime>
+@typeparam TValue
+@inherits InputBase<TValue>
 @inject IJSRuntime JS
 @implements IAsyncDisposable
 
@@ -18,7 +19,15 @@
     private string _errorMessage = string.Empty;
     private IJSObjectReference? _module;
     private IJSObjectReference? _instance;
-    private DotNetObjectReference<EndOfDayTimeInput>? _dotNetRef;
+    private DotNetObjectReference<EndOfDayTimeInput<TValue>>? _dotNetRef;
+
+    public EndOfDayTimeInput()
+    {
+        var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+        if (type != typeof(EodtCore.EndOfDayTime))
+            throw new InvalidOperationException(
+                $"{GetType()} does not support the type '{typeof(TValue)}'. Use EndOfDayTime or EndOfDayTime?.");
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -31,8 +40,9 @@
                 "initEndOfDayTimeInput", _inputRef, _dotNetRef);
 
             // Set initial value if any
-            if (Value != default)
-                await _instance.InvokeVoidAsync("setValue", Value.ToString());
+            var initial = FormatValueAsString(Value);
+            if (!string.IsNullOrEmpty(initial))
+                await _instance.InvokeVoidAsync("setValue", initial);
         }
     }
 
@@ -71,20 +81,22 @@
 
     protected override bool TryParseValueFromString(
         string? value,
-        out EodtCore.EndOfDayTime result,
+        [MaybeNullWhen(false)] out TValue result,
         [NotNullWhen(false)] out string? validationErrorMessage)
     {
-        if (EodtCore.EndOfDayTime.TryParse(value ?? string.Empty, out result))
+        if (EodtCore.EndOfDayTime.TryParse(value ?? string.Empty, out var parsed))
         {
+            result = (TValue)(object)parsed;
             validationErrorMessage = null;
             return true;
         }
+        result = default;
         validationErrorMessage = "Enter a valid time (00:00–24:00).";
         return false;
     }
 
-    protected override string? FormatValueAsString(EodtCore.EndOfDayTime value)
-        => value == default ? string.Empty : value.ToString();
+    protected override string? FormatValueAsString(TValue? value)
+        => value is EodtCore.EndOfDayTime t ? t.ToString() : string.Empty;
 
     public async ValueTask DisposeAsync()
     {

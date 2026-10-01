@@ -61,7 +61,16 @@ namespace EndOfDayTime.AspNet.Tests
         }
 
         [Fact]
-        public void EndOfDayTimeInput_DefaultValue_NoValueAttribute()
+        public void EndOfDayTimeInput_WithMidnight_SetsValue()
+        {
+            var result = RenderHtml(
+                EndOfDayTimeHtmlHelperExtensions.BuildEndOfDayTimeInput(
+                    "ShiftStart", new EodtCore.EndOfDayTime(0, 0)));
+            Assert.Contains("value=\"00:00\"", result);
+        }
+
+        [Fact]
+        public void EndOfDayTimeInput_NullValue_NoValueAttribute()
         {
             var result = RenderHtml(
                 EndOfDayTimeHtmlHelperExtensions.BuildEndOfDayTimeInput("ShiftEnd"));
