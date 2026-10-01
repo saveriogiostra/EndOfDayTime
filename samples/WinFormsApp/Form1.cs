@@ -24,8 +24,8 @@ namespace EndOfDayTime.Sample.WinForms
             var lblEnd = new Label { Text = "Shift end:", Left = 20, Top = 60, Width = 100 };
 
             // ── EndOfDayTimeTextBox controls ─────────────────────────────
-            _startBox = new EndOfDayTimeTextBox { Left = 130, Top = 17, Width = 100 };
-            _endBox = new EndOfDayTimeTextBox { Left = 130, Top = 57, Width = 100 };
+            _startBox = new EndOfDayTimeTextBox { Left = 130, Top = 17, Width = 100, IsRequired = true };
+            _endBox = new EndOfDayTimeTextBox { Left = 130, Top = 57, Width = 100, IsRequired = true };
 
             // ── ErrorProvider ─────────────────────────────────────────────
             _errorProvider = new ErrorProvider();

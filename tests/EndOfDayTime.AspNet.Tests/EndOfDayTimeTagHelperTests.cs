@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Routing;
-using Moq;
 using Xunit;
 using EndOfDayTime.AspNet;
 using EodtCore = EndOfDayTime.Core;
@@ -42,7 +41,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_RendersInputElement()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>());
+            var helper = new EndOfDayTimeInputTagHelper();
             var output = CreateOutput();
             helper.Process(CreateContext(), output);
             Assert.Equal("input", output.TagName);
@@ -51,7 +50,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_SetsDataAttribute()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>());
+            var helper = new EndOfDayTimeInputTagHelper();
             var output = CreateOutput();
             helper.Process(CreateContext(), output);
             Assert.True(output.Attributes.ContainsName("data-eodt-input"));
@@ -60,7 +59,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_SetsMaxLength5()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>());
+            var helper = new EndOfDayTimeInputTagHelper();
             var output = CreateOutput();
             helper.Process(CreateContext(), output);
             Assert.Equal("5", output.Attributes["maxlength"].Value.ToString());
@@ -69,7 +68,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_SetsPlaceholder()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>());
+            var helper = new EndOfDayTimeInputTagHelper();
             var output = CreateOutput();
             helper.Process(CreateContext(), output);
             Assert.Equal("HH:mm", output.Attributes["placeholder"].Value.ToString());
@@ -78,7 +77,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_CustomPlaceholder()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>())
+            var helper = new EndOfDayTimeInputTagHelper()
             {
                 Placeholder = "Enter time"
             };
@@ -90,7 +89,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_SetsTypeText()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>());
+            var helper = new EndOfDayTimeInputTagHelper();
             var output = CreateOutput();
             helper.Process(CreateContext(), output);
             Assert.Equal("text", output.Attributes["type"].Value.ToString());
@@ -99,7 +98,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_SelfClosingTag()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>());
+            var helper = new EndOfDayTimeInputTagHelper();
             var output = CreateOutput();
             helper.Process(CreateContext(), output);
             Assert.Equal(TagMode.SelfClosing, output.TagMode);
@@ -108,7 +107,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_WithCssClass_SetsClass()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>())
+            var helper = new EndOfDayTimeInputTagHelper()
             {
                 Class = "my-input"
             };
@@ -127,7 +126,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_ForMidnight_SetsValue()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>())
+            var helper = new EndOfDayTimeInputTagHelper()
             {
                 For = CreateExpression("Start", new EodtCore.EndOfDayTime(0, 0))
             };
@@ -139,7 +138,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_ForNull_NoValueAttribute()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>())
+            var helper = new EndOfDayTimeInputTagHelper()
             {
                 For = CreateExpression<EodtCore.EndOfDayTime?>("Start", null)
             };
@@ -151,7 +150,7 @@ namespace EndOfDayTime.AspNet.Tests
         [Fact]
         public void Process_WithoutCssClass_NoClassAttribute()
         {
-            var helper = new EndOfDayTimeInputTagHelper(Mock.Of<IHtmlGenerator>());
+            var helper = new EndOfDayTimeInputTagHelper();
             var output = CreateOutput();
             helper.Process(CreateContext(), output);
             Assert.False(output.Attributes.ContainsName("class"));

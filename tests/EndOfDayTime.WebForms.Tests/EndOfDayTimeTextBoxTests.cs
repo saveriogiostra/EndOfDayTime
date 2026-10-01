@@ -74,21 +74,59 @@ namespace EndOfDayTime.WebForms.Tests
             Assert.True(control.IsValid);
         }
 
-        // ── InputCssClass ────────────────────────────────────────────────
-
         [Fact]
-        public void InputCssClass_Default_IsEmpty()
+        public void InvalidText_IsNotValid_AndHasNoTimeValue()
         {
             var control = new EndOfDayTimeTextBox();
-            Assert.Equal(string.Empty, control.InputCssClass);
+            control.Text = "25:00";
+            Assert.False(control.IsValid);
+            Assert.Null(control.TimeValue);
+            Assert.Equal("25:00", control.Text); // kept so the user can correct it
+        }
+
+        // ── Rendering ────────────────────────────────────────────────────
+
+        private static string Render(EndOfDayTimeTextBox control)
+        {
+            using (var sw = new System.IO.StringWriter())
+            using (var writer = new System.Web.UI.HtmlTextWriter(sw))
+            {
+                control.RenderControl(writer);
+                return sw.ToString();
+            }
         }
 
         [Fact]
-        public void InputCssClass_Set_ReturnsValue()
+        public void Render_EmitsInputWithEodtAttributes()
         {
-            var control = new EndOfDayTimeTextBox();
-            control.InputCssClass = "my-input";
-            Assert.Equal("my-input", control.InputCssClass);
+            var html = Render(new EndOfDayTimeTextBox { TimeValue = new EodtCore.EndOfDayTime(0, 0) });
+            Assert.StartsWith("<input", html);
+            Assert.Contains("data-eodt-input=\"true\"", html);
+            Assert.Contains("placeholder=\"HH:mm\"", html);
+            Assert.Contains("maxlength=\"5\"", html);
+            Assert.Contains("value=\"00:00\"", html);
+        }
+
+        [Fact]
+        public void Render_CssClass_IsEncoded()
+        {
+            var html = Render(new EndOfDayTimeTextBox { CssClass = "a\"><script>" });
+            Assert.DoesNotContain("<script>", html);
+        }
+
+        [Fact]
+        public void Render_Disabled_EmitsDisabledAttribute()
+        {
+            var html = Render(new EndOfDayTimeTextBox { Enabled = false });
+            Assert.Contains("disabled=\"disabled\"", html);
+        }
+
+        [Fact]
+        public void Render_ExplicitWidth_ReplacesDefault()
+        {
+            var html = Render(new EndOfDayTimeTextBox { Width = System.Web.UI.WebControls.Unit.Pixel(120) });
+            Assert.Contains("120px", html);
+            Assert.DoesNotContain("70px", html);
         }
 
         // ── TimeValueChanged event ────────────────────────────────────────

@@ -10,13 +10,18 @@ namespace EndOfDayTime.Wpf
     /// </summary>
     public class EndOfDayTimeValidationRule : ValidationRule
     {
+        /// <summary>When true, empty input fails validation. Defaults to false.</summary>
+        public bool IsRequired { get; set; }
+
    /// <inheritdoc/>
         public override ValidationResult Validate(object value, CultureInfo cultureInfo)
         {
             var input = value as string ?? string.Empty;
 
             if (string.IsNullOrWhiteSpace(input))
-                return new ValidationResult(false, "Time is required.");
+                return IsRequired
+                    ? new ValidationResult(false, "Time is required.")
+                    : ValidationResult.ValidResult;
 
             if (!EodtCore.EndOfDayTime.TryParse(input, out _))
                 return new ValidationResult(false, "Enter a valid time (00:00–24:00).");

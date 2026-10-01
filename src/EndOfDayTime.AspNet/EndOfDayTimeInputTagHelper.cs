@@ -16,8 +16,6 @@ namespace EndOfDayTime.AspNet
     [HtmlTargetElement("eodt-input")]
     public class EndOfDayTimeInputTagHelper : TagHelper
     {
-        private readonly IHtmlGenerator _generator;
-
         /// <summary>Model expression for the EndOfDayTime property.</summary>
         [HtmlAttributeName("asp-for")]
         public ModelExpression? For { get; set; }
@@ -32,12 +30,6 @@ namespace EndOfDayTime.AspNet
         [ViewContext]
         [HtmlAttributeNotBound]
         public ViewContext ViewContext { get; set; } = null!;
-
-        /// <summary>Initialises a new instance of <see cref="EndOfDayTimeInputTagHelper"/>.</summary>
-        public EndOfDayTimeInputTagHelper(IHtmlGenerator generator)
-        {
-            _generator = generator;
-        }
 
         /// <inheritdoc/>
         public override void Process(TagHelperContext context, TagHelperOutput output)

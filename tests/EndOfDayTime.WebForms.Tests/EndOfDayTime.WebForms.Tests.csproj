@@ -13,6 +13,9 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="System.Web" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\src\EndOfDayTime.WebForms\EndOfDayTime.WebForms.csproj" />
     <ProjectReference Include="..\..\src\EndOfDayTime.Core\EndOfDayTime.Core.csproj" />
   </ItemGroup>

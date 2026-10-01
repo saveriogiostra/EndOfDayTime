@@ -46,6 +46,24 @@ namespace EndOfDayTime.Wpf
             set => SetValue(TimeValueProperty, value);
         }
 
+        /// <summary>Dependency property for <see cref="IsRequired"/>.</summary>
+        public static readonly DependencyProperty IsRequiredProperty =
+            DependencyProperty.Register(
+                nameof(IsRequired),
+                typeof(bool),
+                typeof(EndOfDayTimeTextBox),
+                new PropertyMetadata(false));
+
+        /// <summary>
+        /// When true, an empty field fails validation. Defaults to false:
+        /// an empty field is valid and <see cref="TimeValue"/> is null.
+        /// </summary>
+        public bool IsRequired
+        {
+            get => (bool)GetValue(IsRequiredProperty);
+            set => SetValue(IsRequiredProperty, value);
+        }
+
         // ── Routed Events ────────────────────────────────────────────────
 
         /// <summary>Routed event raised when <see cref="TimeValue"/> changes.</summary>
@@ -264,14 +282,22 @@ namespace EndOfDayTime.Wpf
 
         // ── Validation ────────────────────────────────────────────────────
 
-        /// <summary>Validates the current text. Returns true if valid and updates <see cref="TimeValue"/>.</summary>
+        /// <summary>
+        /// Validates the current text. Returns true if valid and updates <see cref="TimeValue"/>.
+        /// An empty field is valid unless <see cref="IsRequired"/> is set.
+        /// </summary>
         public bool Validate()
         {
             if (string.IsNullOrWhiteSpace(Text))
             {
                 SetTimeValueFromInput(null);
-                SetValidationState(false, "Time is required.");
-                return false;
+                if (IsRequired)
+                {
+                    SetValidationState(false, "Time is required.");
+                    return false;
+                }
+                SetValidationState(true, null);
+                return true;
             }
 
             if (!EodtCore.EndOfDayTime.TryParse(Text, out var parsed))
@@ -311,8 +337,7 @@ namespace EndOfDayTime.Wpf
 
         private void OnLostFocus(object sender, RoutedEventArgs e)
         {
-            if (_digits.Length > 0)
-                Validate();
+            Validate();
         }
     }
 }
